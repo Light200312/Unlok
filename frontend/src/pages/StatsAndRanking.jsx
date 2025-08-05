@@ -42,6 +42,7 @@ const StatsAndRanking = () => {
 
   useEffect(() => {
     calculateRank(authUser._id);
+    fetchMatrices(authUser._id);
   }, []);
 
   return (
@@ -88,6 +89,7 @@ const StatsAndRanking = () => {
 
         {/* Stats and Skills */}
         <div className="mt-6">
+          {/* {console.log(metrics)} */}
           {matrices?.map((matrix) => {
             const [isOpen, setIsOpen] = useState(false);
 

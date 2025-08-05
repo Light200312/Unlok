@@ -14,6 +14,9 @@ export const matrixAuthStore = create(
         try {
           const res = await axios.get(`${url}/matrices/${userId}`);
           set({ matrices: res.data });
+          toast.success("matrix fetched")
+          console.log(res.data)
+          // console.log(userId)
         } catch (err) {
           toast.error("Failed to fetch matrices");
           console.error("❌ fetchMatrices error:", err.message);
