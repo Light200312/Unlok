@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@plugin "daisyui";
+/* src/styles.css or src/App.css */
+/* src/index.css */
+/* @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+body {
+  font-family: 'Bitcount Prop Single', sans-serif;
+}
+
+.font-bitcount {
+  font-family: 'Bitcount Prop Single', sans-serif;
+} */
