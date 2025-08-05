@@ -89,7 +89,7 @@ export const matrixAuthStore = create(
 
     }),
     {
-      name: "global-storage",
+      name: "matrix-storage",
       getStorage: () => localStorage,
     }
   )
