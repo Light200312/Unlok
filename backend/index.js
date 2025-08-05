@@ -12,7 +12,7 @@ connectDB();
 
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://62t7qrw9-5000.inc1.devtunnels.ms',], // ✅ allow frontend dev & production
+  origin: ['http://localhost:5173',"https://unlok-lkr3.onrender.com"], // ✅ allow frontend dev & production
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true // if you're using cookies/auth headers
 }));
