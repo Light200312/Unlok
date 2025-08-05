@@ -1,4 +1,4 @@
-import React , { lazy, Suspense }from "react";
+import React , { lazy, Suspense ,useEffect}from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { UserAuth } from "./store/userAuthStore";
@@ -12,9 +12,16 @@ const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
 const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
 import Navbar from "./components/SubComponent/Navbar";
 const CanvasRevealEffectDemo = lazy(() => import("./components/CanvarCover"));
+import { matrixAuthStore } from "./store/matrixStore";
 
 const App = () => {
   const { authUser } = UserAuth();
+  const {fetchMatrices}=matrixAuthStore()
+useEffect(() => {
+  fetchMatrices(authUser._id)
+
+ 
+}, [])
 
   return (
     <div className="relative">
