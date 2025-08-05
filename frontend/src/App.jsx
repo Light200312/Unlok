@@ -1,35 +1,59 @@
-import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import React , { lazy, Suspense }from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { UserAuth } from "./store/userAuthStore";
-import GlobalRanking from "./pages/GlobalRanking"
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import DailyChellenges from "./pages/dailyChellenges";
-import StatsAndRanking from "./pages/StatsAndRanking";
 
+const GlobalRanking = lazy(() => import("./pages/GlobalRanking"));
+const Home = lazy(() => import("./pages/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+
+const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
+const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
 import Navbar from "./components/SubComponent/Navbar";
-import { CanvasRevealEffectDemo } from "./components/CanvarCover";
+const CanvasRevealEffectDemo = lazy(() => import("./components/CanvarCover"));
 
 const App = () => {
   const { authUser } = UserAuth();
 
   return (
-    // <div className="App ">
+    <>
       <Navbar>
-        <Routes>
-          <Route path="/" element={authUser?.username ? <Home /> : <Login />} />
-          <Route path="/dailychellenge" element={authUser?.username ? <DailyChellenges /> : <Login />} />
-          <Route path="/statsAndRanking" element={authUser?.username ? <StatsAndRanking /> : <Login />} />
-          <Route path="/globalRanking" element={authUser?.username ? <GlobalRanking /> : <Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/canvas" element={<CanvasRevealEffectDemo />} />
-        </Routes>
-      <Toaster />
+        <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/"
+              element={authUser?.username ? <Home /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/dailychellenge"
+              element={authUser?.username ? <DailyChellenges /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/statsAndRanking"
+              element={authUser?.username ? <StatsAndRanking /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/globalRanking"
+              element={authUser?.username ? <GlobalRanking /> : <Navigate to="/login" />}
+            />
+
+            {/* Canvas Route - no auth */}
+            <Route path="/canvas" element={<CanvasRevealEffectDemo />} />
+
+            {/* Optional Fallback */}
+            {/* <Route path="*" element={<Navigate to="/" />} /> */}
+          </Routes>
+        </Suspense>
       </Navbar>
-    // </div>
+
+      <Toaster position="top-right" reverseOrder={false} />
+    </>
   );
 };
 
