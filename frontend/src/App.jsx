@@ -22,13 +22,15 @@ const App = () => {
         <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={authUser?.username ?  <Navigate to="/statsAndRanking" />: <Login />} />
             <Route path="/register" element={<Register />} />
 
             {/* Protected Routes */}
             <Route
               path="/"
-              element={authUser?.username ? <Home /> : <Navigate to="/login" />}
+              // element={authUser?.username ? <Home /> : <Navigate to="/login" />}
+                element={<Home/>}
+              
             />
             <Route
               path="/dailychellenge"
