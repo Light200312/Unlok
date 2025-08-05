@@ -10,4 +10,7 @@ body {
 
 .font-bitcount {
   font-family: 'Bitcount Prop Single', sans-serif;
-} */
+} */html, body, #root {
+  height: 100%;
+  position: relative;
+}

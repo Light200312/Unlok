@@ -17,7 +17,7 @@ const App = () => {
   const { authUser } = UserAuth();
 
   return (
-    <>
+    <div className="relative">
       <Navbar>
         <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
           <Routes>
@@ -53,7 +53,7 @@ const App = () => {
       </Navbar>
 
       <Toaster position="top-right" reverseOrder={false} />
-    </>
+    </div>
   );
 };
 
