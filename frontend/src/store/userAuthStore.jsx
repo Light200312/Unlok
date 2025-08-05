@@ -10,10 +10,10 @@ export const UserAuth = create(
   authUser: null,
   isSigningUp: false,
   isLoggingIn: false,
-  token:null,
-  Rank:null,
-  titles:null,
-  badges:null,
+  // token:null,
+  // Rank:null,
+  // titles:null,
+  // badges:null,
   ranking:null,
 
   signup: async (data) => {
@@ -39,9 +39,9 @@ export const UserAuth = create(
       const res = await axios.post(`${url}/user/login`, data);
       console.log(res.data)
       set({ authUser: res.data });
-      set({ Rank: res.data.rank });
-      set({ titles: res.data?.titles });
-      set({ badges: res.data.badges });
+      // set({ Rank: res.data.rank });
+      // set({ titles: res.data?.titles });
+      // set({ badges: res.data.badges });
       toast.success("Logged in successfully" );
     } catch (error) {
       console.error("Login error:", error?.response?.data || error);

@@ -42,7 +42,7 @@ const StatsAndRanking = () => {
 
   useEffect(() => {
     calculateRank(authUser._id);
-    fetchMatrices(authUser._id);
+    // fetchMatrices(authUser._id);
   }, []);
 
   return (
