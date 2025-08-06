@@ -42,21 +42,21 @@ const StatsAndRanking = () => {
     );
   };
 
-  // --- Calculate rank and title ---
+  // Safe rank calculation
   const points = parseInt(authUser?.points || 0);
   const matchedTier = rankTiers.find((tier) => points >= tier.points) || rankTiers[rankTiers.length - 1];
-  const computedRank = matchedTier.code;
-  const computedTitle = matchedTier.title;
-  const computedBadge = matchedTier.title; // You can change badge logic if needed
+  const computedRank = matchedTier?.code || "N/A";
+  const computedTitle = matchedTier?.title || "N/A";
+  const computedBadge = matchedTier?.title || "N/A";
 
   const CategoryDescription = {
-    "Cognitive Growth": "Cognitive Growth refers to the development of mental capabilities like focus, problem solving, critical thinking, learning speed, and memory. It enhances your ability to process information, make sound decisions, and adapt to new knowledge.",
-    "Physical Wellness": "Physical Wellness involves maintaining a healthy body through strength, stamina, sleep, and overall health score. It supports energy levels, immunity, and mental clarity.",
-    "Emotional Intelligence": "Emotional Intelligence is the ability to understand, use, and manage emotions effectively. Skills like self-awareness, impulse control, empathy, and stress management help build meaningful relationships.",
-    "Social Character": "Social Character encompasses traits like communication, leadership, conflict resolution, and integrity. These are critical for building trust and collaboration.",
-    "Discipline & Productivity": "This reflects your ability to stay organized, complete tasks, and manage time. Essential for consistent progress and long-term success.",
-    "Growth Mindset": "A Growth Mindset believes in developing abilities through effort and learning. It encourages persistence and self-improvement.",
-    "Purpose & Values": "Purpose & Values involve aligning your actions with meaningful goals, core values, and contribution. It brings direction and motivation.",
+    "Cognitive Growth": "Cognitive Growth refers to the development of mental capabilities like focus, problem solving, critical thinking, learning speed, and memory.",
+    "Physical Wellness": "Physical Wellness involves maintaining a healthy body through strength, stamina, sleep, and overall health score.",
+    "Emotional Intelligence": "Emotional Intelligence is the ability to understand, use, and manage emotions effectively.",
+    "Social Character": "Social Character includes communication, leadership, conflict resolution, and integrity.",
+    "Discipline & Productivity": "This reflects your ability to stay organized, complete tasks, and manage time.",
+    "Growth Mindset": "A Growth Mindset believes in developing abilities through effort and learning.",
+    "Purpose & Values": "Purpose & Values involve aligning your actions with meaningful goals and contribution.",
   };
 
   return (
@@ -83,7 +83,6 @@ const StatsAndRanking = () => {
         color="#0A0A23"
         radius={350}
       >
-        {/* Header */}
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-white text-lg sm:text-3xl font-bold bg-blue-700 px-4 py-2 rounded-t-lg font-bitcount" style={{ textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)", zIndex: 20 }}>
           [{authUser?.username?.toUpperCase() || "PROFILE"}]
         </div>
@@ -91,8 +90,8 @@ const StatsAndRanking = () => {
         {/* Profile Info */}
         <div className="text-white sm:text-lg mt-8 flex flex-col items-center font-bitcount">
           <div className="mb-2"><strong>NAME:</strong> {authUser?.username?.toUpperCase() || "Unknown"}</div>
-          <div className="mb-2"><strong>AGE:</strong> Unknown</div>
-          <div className="mb-2"><strong>POINTS:</strong> {authUser?.points ?? "N/A"}</div>
+          <div className="mb-2"><strong>AGE:</strong> {authUser?.age || "Not Available"}</div>
+          <div className="mb-2"><strong>POINTS:</strong> {isNaN(points) ? "N/A" : points}</div>
           <div className="mb-2"><strong>RANKING:</strong> {computedRank}</div>
           <div className="mb-2"><strong>TITLE:</strong> {computedTitle}</div>
           <div className="mb-2"><strong>BADGES:</strong> {computedBadge}</div>
@@ -100,20 +99,16 @@ const StatsAndRanking = () => {
 
         {/* Matrix Cards */}
         <div className="mt-6">
-          {matrices?.map((matrix) => (
-            <div key={matrix._id} className="mb-6 p-1 sm:p-2 bg-blue-900 hover:bg-blue-800 border-2 border-blue-400 rounded-sm sm:rounded-lg" style={{ boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)" }}>
+          {(matrices?.length > 0 ? matrices : []).map((matrix) => (
+            <div key={matrix?._id || Math.random()} className="mb-6 p-1 sm:p-2 bg-blue-900 hover:bg-blue-800 border-2 border-blue-400 rounded-sm sm:rounded-lg" style={{ boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)" }}>
               <div className="flex justify-between items-center">
                 <button
                   onClick={() => toggleMatrix(matrix._id)}
                   className="flex items-center sm:text-xl font-bold text-white font-bitcount"
                   style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
                 >
-                  {matrix.category}
-                  <span
-                    className="ml-2 transform transition-transform duration-300 font-bitcount"
-                    style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}
-                    aria-label={openMatrixIds.includes(matrix._id) ? "Collapse" : "Expand"}
-                  >
+                  {matrix?.category || "Unnamed Category"}
+                  <span className="ml-2 transform transition-transform duration-300 font-bitcount" style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}>
                     <span className="text-xs">{openMatrixIds.includes(matrix._id) ? "▲" : "▼"}</span>
                   </span>
                 </button>
@@ -122,11 +117,11 @@ const StatsAndRanking = () => {
               {openMatrixIds.includes(matrix._id) && (
                 <>
                   <div className="text-sm text-gray-300 mt-1 transition-all duration-300 ease-in-out font-bitcount">
-                    {CategoryDescription[matrix.category] || "No description"}
+                    {CategoryDescription[matrix.category] || "No description available."}
                   </div>
-                  {matrix.metrics.map((metric) => (
-                    <div key={metric.name} className="flex items-center gap-2 mb-1 text-white mt-2 font-bitcount">
-                      <span>{metric.name}: {metric.value}</span>
+                  {(matrix?.metrics?.length > 0 ? matrix.metrics : []).map((metric, i) => (
+                    <div key={i} className="flex items-center gap-2 mb-1 text-white mt-2 font-bitcount">
+                      <span>{metric?.name || "Unnamed"}: {metric?.value ?? "N/A"}</span>
                     </div>
                   ))}
                 </>
