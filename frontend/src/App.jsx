@@ -17,11 +17,11 @@ import { matrixAuthStore } from "./store/matrixStore";
 const App = () => {
   const { authUser } = UserAuth();
   const {fetchMatrices}=matrixAuthStore()
-useEffect(() => {
-  fetchMatrices(authUser._id)
+// useEffect(() => {
+//   fetchMatrices(authUser._id)
 
  
-}, [])
+// }, [])
 
   return (
     <div className="relative">
