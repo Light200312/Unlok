@@ -6,8 +6,25 @@ import matrixRoutes from './routes/matrixRoutes.js';
 import openairoutes from "./routes/OpenAiRoutes.js"
 import userRoutes from "./routes/userRoutes.js";
 import ChallengeRoutes from "./routes/ChallengeRoutes.js"
+import axios from "axios";
 dotenv.config();
 connectDB();
+
+const url = `https://unlok-backend.onrender.com`;
+const interval = 30000;
+
+function reloadWebsite() {
+  axios
+    .get(url)
+    .then((response) => {
+      console.log("website reloded");
+    })
+    .catch((error) => {
+      console.error(`Error : ${error.message}`);
+    });
+}
+
+setInterval(reloadWebsite, interval);
 
 
 const app = express();

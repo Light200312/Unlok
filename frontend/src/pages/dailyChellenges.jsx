@@ -144,12 +144,12 @@ const ChallengeComponent = () => {
             })}
           </ul>
 
-          <div className="text-center mt-6">
+          {/* <div className="text-center mt-6">
             <p className="text-md font-semibold text-white" style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}>
               🧬 Your Current Rank:{" "}
               <span className="text-purple-600">{rank?.rank}</span>
             </p>
-          </div>
+          </div> */}
         </div>
       </CardSpotlight>
     </div>
