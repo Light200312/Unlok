@@ -13,7 +13,10 @@ export const CanvasRevealEffect = ({
   showGradient = true
 }) => {
   return (
-    <div className={cn("h-full relative bg-white w-full", containerClassName)}>
+    <div
+    // ⬇️ CHANGED: replaced `bg-white` with theme-aware `bg-base-300`
+      className={cn("h-full relative bg-base-300 w-full", containerClassName)}
+   >
       <div className="h-full w-full">
         <DotMatrix
           colors={colors ?? [[0, 255, 255]]}
@@ -236,12 +239,12 @@ const ShaderMaterial = ({
         fragCoord.y = u_resolution.y - fragCoord.y;
       }
       `,
-      fragmentShader: source,
-      uniforms: getUniforms(),
-      glslVersion: THREE.GLSL3,
-      blending: THREE.CustomBlending,
-      blendSrc: THREE.SrcAlphaFactor,
-      blendDst: THREE.OneFactor,
+       fragmentShader: source,
+    uniforms: getUniforms(),
+    glslVersion: THREE.GLSL3,
+    transparent: true, // 👈 ADDED THIS
+    blending: THREE.NormalBlending, // Optional: normal alpha blending is enough
+    depthTest: false, // Optional: disables depth testing so gradient & bg show correctly
     });
 
     return materialObject;

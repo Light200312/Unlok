@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { matrixAuthStore } from "../store/matrixStore";
 import { useChallengeStore } from "../store/ChallengeStore";
@@ -18,7 +20,7 @@ const ChallengeComponent = () => {
     delete_challenge,
   } = useChallengeStore();
 
-  const [openDescIndex, setOpenDescIndex] = useState(null); // for toggle
+  const [openDescIndex, setOpenDescIndex] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -29,102 +31,113 @@ const ChallengeComponent = () => {
 
   return (
     <div
-      className="bg-gray-900 min-h-screen pt-24 p-2 flex items-center justify-center"
+      className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
       style={{
         backgroundImage: `url(./challengebg.jpg)`,
         backgroundSize: "cover",
         backgroundPosition: "bottom",
         backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed", // Keep the static background image
+        backgroundAttachment: "fixed",
         position: "relative",
       }}
     >
-      {/* Overlay to darken the blurred background */}
+      {/* ✅ Dark overlay */}
       <div
-        className="absolute inset-0 bg-black opacity-20"
-        style={{ zIndex: 1 }}
+        className="absolute inset-0 bg-black/20 z-0"
       ></div>
+
       <CardSpotlight
-        className="w-full max-w-2xl p-6 border-4 border-blue-700 rounded-lg z-10"
+        className="w-full max-w-2xl p-6 border-4 border-primary rounded-lg z-10"
         style={{
+          // ✅ Optional: more theme-aware, but still neon styled
           boxShadow: "0 0 15px rgba(0, 191, 255, 0.7)",
-          backgroundColor: "rgba(0, 0, 139, 0.7)",
-          backdropFilter: "blur(10px)", // Translucent blue with blur
+          backgroundColor: "rgba(10, 10, 35, 0.7)",
+          backdropFilter: "blur(10px)",
         }}
-        color="#0A0A23" // Dark blue to match the theme
+        color="#0A0A23"
         radius={350}
       >
-        {/* Content Wrapper to ensure content is above the pattern */}
         <div className="relative z-10">
-          {/* Header with Neon Effect */}
-          <div className="absolute  -top-18 left-1/2 transform -translate-x-1/2 text-white text-lg sm:text-3xl font-bold bg-blue-700 px-4 py-2 rounded-t-lg" style={{ textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)", zIndex: 20 }}>
+          {/* Neon Header */}
+          <div className="absolute -top-18 left-1/2 transform -translate-x-1/2 text-lg sm:text-3xl font-bold bg-primary px-4 py-2 rounded-t-lg text-white"
+            style={{
+              textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
+              zIndex: 20,
+            }}
+          >
             Daily Quests
           </div>
 
-          {/* New Challenges Button */}
+          {/* Generate Button */}
           <div className="text-center my-4">
             <span
-              onClick={() => {
-                generateChallenges(userId);
-              }}
-              className="text-sm border rounded-md p-1 hover:bg-gray-500 hover:scale-120 text-white"
+              onClick={() => generateChallenges(userId)}
+              className="text-sm border rounded-md p-1 hover:bg-muted hover:scale-105 transition text-white cursor-pointer"
               style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
             >
-              New Quests 
+              New Quests
             </span>
           </div>
 
-          {loading && <p className="text-center text-white">Loading...</p>}
+          {loading && <p className="text-center text-muted-foreground">Loading...</p>}
 
           <ul className="space-y-4 mt-4">
             {challenges.map((c, i) => {
-              const isCompleted = c.completed || false
+              const isCompleted = c.completed || false;
               return (
                 <li
                   key={i}
-                  className="flex flex-col border-2 border-blue-400 rounded-md px-4 py-3 bg-blue-900 transition hover:bg-blue-800"
-                  style={{ boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)" }}
+                  className="flex flex-col border-2 border-primary rounded-md px-4 py-3 bg-muted transition hover:bg-muted/80"
+                  style={{
+                    boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)",
+                  }}
                 >
                   <div className="sm:flex items-start justify-between">
-                    <div className="sm:text-lg font-medium text-white" style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}>
+                    <div
+                      className="sm:text-lg font-medium text-white"
+                      style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}
+                    >
                       {c.title}
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-2 mt-2 sm:mt-0">
                       <button
-                        onClick={() => setOpenDescIndex(openDescIndex === i ? null : i)}
+                        onClick={() =>
+                          setOpenDescIndex(openDescIndex === i ? null : i)
+                        }
                         className="text-sm text-blue-300 hover:underline"
-                        style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.6)" }}
+                        style={{
+                          textShadow: "0 0 3px rgba(0, 191, 255, 0.6)",
+                        }}
                       >
                         {openDescIndex === i ? "Hide" : "Details"}
                       </button>
-                      {/* <button onClick={() => { fetchChallenges(userId, "daily"); delete_challenge(c._id); }} className="text-red-400 hover:text-red-300">❌</button> */}
-                    <select
-  value={isCompleted ? "Completed" : "Pending"}
-  onChange={async (e) => {
-    if (e.target.value === "Completed" && !isCompleted) {
-      await completeChallenge({
-        userId,
-        category: c.metricCategory,
-        metric: c.subMetric,
-        cId: c._id,
-      });
 
-      // Wait for fresh data before re-render
-      await fetchChallenges(userId, "daily");
-    }
-  }}
-  className="bg-blue-800 text-white border border-blue-500 rounded-md p-1 accent-green-500"
-  disabled={isCompleted}
->
-  <option value="Pending">Pending</option>
-  <option value="Completed">Completed</option>
-</select>
+                      <select
+                        value={isCompleted ? "Completed" : "Pending"}
+                        onChange={async (e) => {
+                          if (e.target.value === "Completed" && !isCompleted) {
+                            await completeChallenge({
+                              userId,
+                              category: c.metricCategory,
+                              metric: c.subMetric,
+                              cId: c._id,
+                            });
 
+                            await fetchChallenges(userId, "daily");
+                          }
+                        }}
+                        className="bg-background text-white border border-primary bg-base-300 rounded-md p-1"
+                        disabled={isCompleted}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                      </select>
                     </div>
                   </div>
 
                   {openDescIndex === i && (
-                    <div className="text-sm text-gray-300 mt-2 ml-7">
+                    <div className="text-sm text-muted-foreground mt-2 ml-7">
                       <p>{c.description}</p>
                       {c.resource?.url && (
                         <a
@@ -132,7 +145,9 @@ const ChallengeComponent = () => {
                           target="_blank"
                           rel="noreferrer"
                           className="block mt-1 text-blue-400 underline"
-                          style={{ textShadow: "0 0 2px rgba(0, 191, 255, 0.4)" }}
+                          style={{
+                            textShadow: "0 0 2px rgba(0, 191, 255, 0.4)",
+                          }}
                         >
                           🔗 {c.resource.name}
                         </a>
@@ -144,8 +159,9 @@ const ChallengeComponent = () => {
             })}
           </ul>
 
+          {/* Optional rank footer */}
           {/* <div className="text-center mt-6">
-            <p className="text-md font-semibold text-white" style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}>
+            <p className="text-md font-semibold text-white">
               🧬 Your Current Rank:{" "}
               <span className="text-purple-600">{rank?.rank}</span>
             </p>

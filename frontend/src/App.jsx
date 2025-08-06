@@ -24,7 +24,7 @@ const App = () => {
 // }, [])
 
   return (
-    <div className="relative">
+    <div  className="relative">
       <Navbar>
         <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
           <Routes>

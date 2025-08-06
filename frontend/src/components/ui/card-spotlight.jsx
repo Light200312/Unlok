@@ -14,13 +14,9 @@ export const CardSpotlight = ({
 }) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  function handleMouseMove({
-    currentTarget,
-    clientX,
-    clientY
-  }) {
-    let { left, top } = currentTarget.getBoundingClientRect();
 
+  function handleMouseMove({ currentTarget, clientX, clientY }) {
+    let { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   }
@@ -28,10 +24,12 @@ export const CardSpotlight = ({
   const [isHovering, setIsHovering] = useState(false);
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
+
   return (
     <div
       className={cn(
-        "group/spotlight p-10 rounded-md relative border   bg-blue-700 ",
+        // ⬇️ CHANGED THIS LINE: replaced `bg-blue-700` with `bg-base-300` for theme-aware darker background
+        "group/spotlight p-10 rounded-md relative border bg-base-300",
         className
       )}
       onMouseMove={handleMouseMove}
