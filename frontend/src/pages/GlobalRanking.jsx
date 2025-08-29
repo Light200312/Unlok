@@ -13,7 +13,7 @@ const GlobalRanking = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground"
+      className="min-h-screen flex items-center pt-18 justify-center p-4 bg-background text-foreground"
       style={{
         backgroundImage: `url(./challengebg.jpg)`,
         backgroundSize: "cover",
@@ -38,9 +38,9 @@ const GlobalRanking = () => {
       >
         {/* Neon Header */}
         <div
-          className="absolute -top-4 sm:-top-8 left-1/2 transform -translate-x-1/2 text-md sm:text-2xl font-bold bg-primary px-2 py-1 sm:px-4 sm:py-2 text-white rounded-t-lg"
+          className="absolute -top-4 sm:-top-8 left-1/2 transform -translate-x-1/2 text-md sm:text-2xl font-bold bg-primary px-2 py-1 sm:px-4 sm:py-2  rounded-t-lg"
           style={{
-            textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
+            // textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
             zIndex: 20,
           }}
         >

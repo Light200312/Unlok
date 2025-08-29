@@ -31,6 +31,7 @@ const ChallengeComponent = () => {
 
   return (
     <div
+    data-theme="forest"
       className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
       style={{
         backgroundImage: `url(./challengebg.jpg)`,
@@ -59,9 +60,9 @@ const ChallengeComponent = () => {
       >
         <div className="relative z-10">
           {/* Neon Header */}
-          <div className="absolute -top-18 left-1/2 transform -translate-x-1/2 text-lg sm:text-3xl font-bold bg-primary px-4 py-2 rounded-t-lg text-white"
+          <div className="absolute -top-18 left-1/2 transform -translate-x-1/2 text-lg sm:text-3xl font-bold bg-primary px-4 py-2 rounded-t-lg "
             style={{
-              textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
+              // textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
               zIndex: 20,
             }}
           >
@@ -71,7 +72,7 @@ const ChallengeComponent = () => {
           {/* Generate Button */}
           <div className="text-center my-4">
             <span
-              onClick={() => generateChallenges(userId)}
+              onClick={() => generateChallenges(userId,"daily")}
               className="text-sm border rounded-md p-1 hover:bg-muted hover:scale-105 transition text-white cursor-pointer"
               style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
             >

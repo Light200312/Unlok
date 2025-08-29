@@ -8,21 +8,25 @@ import { Badge } from "lucide-react";
 export const useChallengeStore = create(
       persist((set, get) => ({
   challenges: [],
+  weekchallenges: [],
+  monthchallenges:[],
   loading: false,
   rank: null,
   titles: "NaN",
   points: null,
   badges: null,
 
-  generateChallenges: async (userId, type = "daily") => {
+  generateChallenges: async (userId, type ) => {
     try {
       set({ loading: true });
       const res = await axios.post(`${url}/challenge/create-challenges`, {
         userId,
         type,
       });
-      set({ challenges: res.data });
-      toast.success("Challenges generated");
+      if (type==="daily") set({ challenges: res.data });
+      if (type==="weekly") set({ weekchallenges: res.data });
+      if (type==="monthly") set({ monthchallenges: res.data });
+      // toast.success("Challenges generated");
     } catch (err) {
       toast.error("Challenge generation failed");
       console.error("❌ generateChallenges:", err.message);
@@ -37,7 +41,9 @@ export const useChallengeStore = create(
       const res = await axios.get(
         `${url}/challenge/get-challenges/${userId}/${challengeType}`
       );
-      set({ challenges: res.data });
+        if (challengeType==="daily") set({ challenges: res.data });
+      if (challengeType==="weekly") set({ weekchallenges: res.data });
+      if (challengeType==="monthly") set({ monthchallenges: res.data });
     } catch (err) {
       toast.error("Failed to fetch challenges");
       console.error("❌ fetchChallenges:", err.message);
@@ -57,7 +63,7 @@ export const useChallengeStore = create(
 
       // if (res) delete_challenge(cId)
       // await fetchChallenges(userId)
-      toast.success("Challenge completed! Metric updated.");
+      // toast.success("Challenge completed! Metric updated.");
       return true;
     } catch (err) {
       toast.error("Failed to complete challenge");
@@ -81,7 +87,7 @@ export const useChallengeStore = create(
       set({ rank: res.data?.rank });
       set({ titles: res.data?.titles });
       set({badges : res.data?.badges });
-      toast.success(`Rank: ${res.data.rank}`);
+      // toast.success(`Rank: ${res.data.rank}`);
     } catch (err) {
       toast.error("Rank calculation failed");
       console.error("❌ calculateRank:", err.message);

@@ -18,7 +18,12 @@ const Layout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
+    // globalChat buddyChat
     { name: "Daily Challenges", link: "/dailychellenge" },
+    { name: "Weekly Challenges", link: "/weeklychallenge" },
+    { name: "Monthly Challenges", link: "/monthlychallenge" },
+    { name: "Comunity Chat", link: "/globalChat" },
+    { name: "Rival Buddy", link: "/buddyChat" },
     { name: "Stats and Ranking", link: "/statsAndRanking" },
     { name: "Global Rankings", link: "/globalRanking" },
   ];
@@ -69,13 +74,13 @@ const Layout = ({ children }) => {
               >
                 Logout
               </NavbarButton>
-              <NavbarButton
+              {/* <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"
                 className="w-full"
               >
                 Book a call
-              </NavbarButton>
+              </NavbarButton> */}
             </div>
           </MobileNavMenu>
         </MobileNav>

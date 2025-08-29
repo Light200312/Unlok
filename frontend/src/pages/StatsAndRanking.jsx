@@ -82,9 +82,9 @@ const StatsAndRanking = () => {
       >
         {/* Header */}
         <div
-          className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-md sm:text-2xl font-bold bg-primary text-white px-4 py-2 rounded-t-lg font-bitcount"
+          className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-md sm:text-2xl font-bold bg-primary text-base px-4 py-2 rounded-t-lg font-bitcount"
           style={{
-            textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
+            // textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
             zIndex: 20,
           }}
         >
@@ -113,7 +113,7 @@ const StatsAndRanking = () => {
                 <button
                   onClick={() => toggleMatrix(matrix._id)}
                   className="flex items-center sm:text-xl font-bold font-bitcount text-foreground"
-                  style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
+                  // style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
                 >
                   {matrix?.category || "Unnamed Category"}
                   <span className="ml-2 text-sm">

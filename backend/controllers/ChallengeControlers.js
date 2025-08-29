@@ -37,7 +37,7 @@ const isValidUrl = async (url) => {
 // import Challenge from '../models/challengeModel.js';
 
 export const generateAichallenge = async (req, res) => {
-  const { userId, type = "daily" } = req.body;
+  const { userId, type } = req.body;
   if (!userId) return res.status(400).json({ error: "User ID is required" });
 
   try {
@@ -52,27 +52,32 @@ export const generateAichallenge = async (req, res) => {
       const metric = subMetrics[0];
       return {
         metricCategory: matrix.category,
-        subMetric: metric.name
+        subMetric: metric.name,
       };
     });
 
-    const aiPrompt = `You are a creative assistant AI helping users build better habits. Your goal is to create fresh, varied, and engaging "${type}" challenges for personal growth.
+    // Prompt — AI won't give URLs
+    const aiPrompt = `You are a creative assistant AI helping users build better habits. 
+Your goal is to create fresh, varied, and engaging "${type}" challenges for personal growth.
 
 Task: For each of the following self-improvement areas and sub-metrics, generate a unique, actionable, and easy-to-complete challenge.
 
+Rules:
 - Avoid repetition or overly generic suggestions.
-- Each challenge should feel distinct.
+- Each challenge must feel distinct.
 - Mix up challenge tone and activity type.
+- create searchTitle(a string),which on searched provides sites(depending on resource type) that help in completing the challenges.
+- DO NOT include comments, extra text, or markdown.
+- Output only a valid JSON array.
 
 Here are the self-improvement metrics:
 ${selectedChallenges.map((c, i) => `${i + 1}. ${c.metricCategory} - ${c.subMetric}`).join('\n')}
 
-Return ONLY a valid JSON array of challenges. Each should include:
-- title
-- 1-sentence description
-- resource: { type (video, podcast, article, book, task, reflection), name, url (optional) }
-
-For videos, provide YouTube search link. For books, prefer free sources. For meditation or puzzles, suggest searchable guidance or interactive platforms.
+Return ONLY a valid JSON array of objects with:
+- title (string)
+- searchTitle (string)
+- description (string)
+- resource: { type (video, podcast, article, book, task, reflection), name (string) }
 `;
 
     const aiRes = await openai.chat.completions.create({
@@ -82,22 +87,28 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
     });
 
     const aiContent = aiRes.choices[0].message.content.trim();
-    const jsonMatch = aiContent.match(/\[.*\]/s);
+
+    // Extract JSON
+    const jsonMatch = aiContent.match(/\[\s*{[\s\S]*}\s*\]/);
     if (!jsonMatch) {
-      console.error("AI response is not valid JSON:\n", aiContent);
-      return res.status(500).json({ error: "Invalid AI format: JSON not found" });
+      return res.status(500).json({ error: "JSON not found in AI response" });
     }
+
+    // Clean JSON
+    let jsonString = jsonMatch[0]
+      .replace(/\/\/.*$/gm, "") // remove comments
+      .replace(/,\s*([\]}])/g, "$1"); // remove trailing commas
 
     let aiOutput;
     try {
-      aiOutput = JSON.parse(jsonMatch[0]);
+      aiOutput = JSON.parse(jsonString);
     } catch (err) {
-      console.error("❌ Failed to parse JSON from AI response:\n", jsonMatch[0]);
-      return res.status(500).json({ error: "Malformed AI JSON structure" });
+      console.error("❌ Failed to parse cleaned JSON:", jsonString);
+      return res.status(500).json({ error: "Malformed AI JSON after cleanup" });
     }
 
-    const savedChallenges = await Promise.all(aiOutput.map(async (c, index) => {
-      const ref = selectedChallenges[index];
+    // Generate search URLs based on type & title
+    aiOutput = aiOutput.map(c => {
       const typeMap = {
         youtube: 'video',
         video: 'video',
@@ -110,10 +121,8 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
         reflection: 'reflection'
       };
 
-      let originalType = (c.resource?.type || '').toLowerCase().trim();
-      let normalizedType = typeMap[originalType] || 'task';
-
-      const searchTitle = encodeURIComponent(c.title.trim());
+      let normalizedType = typeMap[(c.resource?.type || '').toLowerCase().trim()] || 'task';
+      const searchTitle = encodeURIComponent(c.searchTitle.trim()) 
 
       let url = '';
       switch (normalizedType) {
@@ -129,14 +138,23 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
         case 'article':
           url = `https://www.google.com/search?q=${searchTitle}+how+to`;
           break;
-        case 'task':
-        case 'reflection':
         default:
           url = `https://www.google.com/search?q=how+to+${searchTitle}`;
-          break;
       }
 
-      // Skip challenge if already exists for this user
+      c.resource = {
+        type: normalizedType,
+        name: c.resource?.name || `Search: ${c.title}`,
+        url
+      };
+
+      return c;
+    });
+
+    // Save to DB
+    const savedChallenges = await Promise.all(aiOutput.map(async (c, index) => {
+      const ref = selectedChallenges[index];
+
       const alreadyExists = await Challenge.findOne({
         userId,
         title: new RegExp(`^${c.title}$`, "i"),
@@ -145,6 +163,7 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
 
       const expirationHours = type === "monthly" ? 720 : type === "weekly" ? 168 : 24;
       const expiresAt = new Date(Date.now() + expirationHours * 60 * 60 * 1000);
+      const challengeValue = type === "monthly" ? 20 : type === "weekly" ? 15 : 5;
 
       return Challenge.create({
         userId,
@@ -153,13 +172,9 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
         type,
         metricCategory: ref.metricCategory,
         subMetric: ref.subMetric,
-        resource: {
-          type: normalizedType,
-          name: `Search: ${c.title}`,
-          url,
-        },
+        resource: c.resource,
         expiresAt,
-        value: type === "monthly" ? 25 : type === "weekly" ? 15 : 5,
+        value: challengeValue,
       });
     }));
 
@@ -169,6 +184,7 @@ For videos, provide YouTube search link. For books, prefer free sources. For med
     res.status(500).json({ error: "Failed to generate AI challenge" });
   }
 };
+
 
 
 

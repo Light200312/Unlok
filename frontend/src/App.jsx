@@ -7,13 +7,16 @@ const GlobalRanking = lazy(() => import("./pages/GlobalRanking"));
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const WeeklyChallenges =lazy(() => import("./pages/WeeklyChallenges"));
+const MonthlyChallenge=lazy(() => import("./pages/MonthlyChallenge"));
 
 const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
 const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
 import Navbar from "./components/SubComponent/Navbar";
 const CanvasRevealEffectDemo = lazy(() => import("./components/CanvarCover"));
 import { matrixAuthStore } from "./store/matrixStore";
-
+import RivalBuddy from "./pages/RivalBuddy";
+const GlobalChat=lazy(()=>import("./pages/GlobalChat"))
 const App = () => {
   const { authUser } = UserAuth();
   const {fetchMatrices}=matrixAuthStore()
@@ -42,6 +45,22 @@ const App = () => {
             <Route
               path="/dailychellenge"
               element={authUser?.username ? <DailyChellenges /> : <Navigate to="/login" />}
+            />
+             <Route
+              path="/globalChat"
+              element={authUser?.username ? <GlobalChat /> : <Navigate to="/login" />}
+            />
+             <Route
+              path="/buddyChat"
+              element={authUser?.username ? <RivalBuddy /> : <Navigate to="/login" />}
+            />
+               <Route
+              path="/weeklychallenge"
+              element={authUser?.username ? <WeeklyChallenges /> : <Navigate to="/login" />}
+            />
+             <Route
+              path="/monthlychallenge"
+              element={authUser?.username ? <MonthlyChallenge /> : <Navigate to="/login" />}
             />
             <Route
               path="/statsAndRanking"

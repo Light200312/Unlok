@@ -76,7 +76,7 @@ const LandingPage = () => {
           </p>
           <Link
             to="/register"
-            className="btn btn-primary text-white"
+            className="btn btn-primary text-base"
           >
             Get Started
           </Link>

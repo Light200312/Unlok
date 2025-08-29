@@ -60,18 +60,61 @@ export const NavBody = ({ children, className, visible }) => {
 };
 
 // === DESKTOP NAV ITEMS ===
+// === DESKTOP NAV ITEMS WITH DROPDOWN FOR FIRST 3 ===
 export const NavItems = ({ items, className, onItemClick }) => {
   const [hovered, setHovered] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const dropdownItems = items.slice(0, 3); // first 3 go in dropdown
+  const normalItems = items.slice(3); // rest stay inline
 
   return (
     <motion.div
-      onMouseLeave={() => setHovered(null)}
+      onMouseLeave={() => {
+        setHovered(null);
+        setDropdownOpen(false);
+      }}
       className={cn(
         "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-base-content/70 transition duration-200 hover:text-base-content lg:flex lg:space-x-2",
         className
       )}
     >
-      {items.map((item, idx) => (
+      {/* DROPDOWN PARENT */}
+      <div className="relative">
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+         
+          className="relative px-4 py-2 text-base-content/70 rounded-full hover:bg-base-300 transition"
+        >
+          Menu
+        </button>
+
+        <AnimatePresence>
+          {dropdownOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute left-0 mt-2 flex flex-col rounded-lg bg-base-100 shadow-lg border border-base-300 overflow-hidden z-50"
+            >
+              {dropdownItems.map((item, idx) => (
+                <RouterLink
+                  key={`dropdown-${idx}`}
+                  to={item.link}
+                  onClick={onItemClick}
+                  className="px-4 py-2 text-sm text-base-content hover:bg-base-200 transition"
+                >
+                  {item.name}
+                </RouterLink>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* NORMAL ITEMS */}
+      {normalItems.map((item, idx) => (
         <RouterLink
           key={`link-${idx}`}
           to={item.link}
@@ -91,6 +134,7 @@ export const NavItems = ({ items, className, onItemClick }) => {
     </motion.div>
   );
 };
+
 
 // === MOBILE NAV WRAPPERS ===
 export const MobileNav = ({ children, className, visible }) => {

@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String },
   password: { type: String, required: true },
+      profilePic: {
+      type: String,
+      default: "",
+    },
   matrices: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Matrix' }],
   //user rank and titles
   rank:{type:String},
