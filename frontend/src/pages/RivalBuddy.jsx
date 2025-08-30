@@ -59,7 +59,7 @@ const RivalBuddy = () => {
   };
 
   return (
-    <div className="flex pt-20 h-screen w-full bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <div className="flex pt-20 h-[100dvh]  bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Sidebar */}
       <aside className=" border-r bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <h2 className="mb-4 text-lg font-semibold">Chats</h2>
@@ -82,7 +82,7 @@ const RivalBuddy = () => {
       </aside>
 
       {/* Chat Window */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex w-full flex-1 flex-col">
         {/* Header */}
         <div className="border-b bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <h3 className="text-md font-medium">
@@ -128,7 +128,7 @@ const RivalBuddy = () => {
 
         {/* Input */}
         <form
-          className="flex items-center gap-2 border-t bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+          className="flex w-full items-center gap-2 border-t bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
           onSubmit={handleSend}
         >
           {/* Image Upload */}
