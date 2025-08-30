@@ -15,18 +15,18 @@ connectDB();
 const url = `https://unlok-backend.onrender.com`;
 const interval = 30000;
 
-// function reloadWebsite() {
-//   axios
-//     .get(url)
-//     .then((response) => {
-//       // console.log("website reloded");
-//     })
-//     .catch((error) => {
-//       console.error(`Error : ${error.message}`);
-//     });
-// }
+function reloadWebsite() {
+  axios
+    .get(url)
+    .then((response) => {
+      // console.log("website reloded");
+    })
+    .catch((error) => {
+      console.error(`Error : ${error.message}`);
+    });
+}
 
-// setInterval(reloadWebsite, interval);
+setInterval(reloadWebsite, interval);
 
 
 // const app = express();

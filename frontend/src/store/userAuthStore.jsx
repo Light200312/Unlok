@@ -7,7 +7,7 @@ import { io } from "socket.io-client";
 import { persist } from "zustand/middleware";
 // import {userAuth} from ""
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "https://unlok-backend.onrender.com";
 
 export const UserAuth = create(
   persist(
