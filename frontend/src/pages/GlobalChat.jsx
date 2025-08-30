@@ -90,9 +90,7 @@ const GlobalChat = () => {
 
       {/* Input bar */}
       <form
-        onSubmit={()=>{
-          handleSend(); getGlobalMessage();
-        }}
+        onSubmit={handleSend}
         className="p-4 bg-base-300 flex items-center gap-2 shadow-inner"
       >
         <input
