@@ -8,6 +8,8 @@ import userRoutes from "./routes/userRoutes.js";
 import ChallengeRoutes from "./routes/ChallengeRoutes.js"
 import axios from "axios";
 import { app, server} from "./config/socket.js"
+import bodyParser from "body-parser";
+
 import messageRoutes from "./routes/MessageRoutes.js"
 dotenv.config();
 connectDB();
@@ -35,7 +37,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true // if you're using cookies/auth headers
 }));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); 
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.get("/" ,(req,res)=>{
     res.send("hello buddy")
 })
