@@ -92,17 +92,19 @@ subscribeToMessages: () => {
   });
 },
 
-  subscribeToGlobal:()=>{
-    const socket = UserAuth?.getState().socket;
-        socket?.on("newGlobalMessage", (newMessage) => {
-      
+ subscribeToGlobal: () => {
+  const socket = UserAuth?.getState().socket;
+  if (!socket) return;
 
-      set({
-        globalMessages: [...get().globalMessages, newMessage],
-      });
-    });
+  // Remove old listener first to avoid duplicates
+  socket.off("newGlobalMessage");
 
-  },
+  socket.on("newGlobalMessage", (newMessage) => {
+    set((state) => ({
+      globalMessages: [...state.globalMessages, newMessage],
+    }));
+  });
+},
 
   unsubscribeFromMessages: () => {
     const socket = UserAuth?.getState().socket;

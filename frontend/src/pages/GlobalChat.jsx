@@ -7,6 +7,7 @@ const GlobalChat = () => {
   const {
     globalMessages,
     getUsers,
+    isMessagesLoading,
     getGlobalMessage,
     subscribeToGlobal,
     unsubscribeFromGlobal,
@@ -29,7 +30,7 @@ const GlobalChat = () => {
       subscribeToGlobal();
     }
     return () => unsubscribeFromGlobal();
-  }, [authUser, getGlobalMessage, subscribeToGlobal]);
+  }, [authUser, subscribeToGlobal]);
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ const GlobalChat = () => {
           <div className="text-center text-gray-500">No globalMessages yet. Be the first!</div>
         )}
 
-        {globalMessages &&
+        {!isMessagesLoading &&
           globalMessages?.map((message, i) => {
             const isMine = message.senderId?._id === authUser?._id;
             return (
