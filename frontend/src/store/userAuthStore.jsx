@@ -6,8 +6,8 @@ import { io } from "socket.io-client";
 import { persist } from "zustand/middleware";
 // import {userAuth} from ""
 
-import { url ,url2,url4} from "../URL";
-const BASE_URL =  import.meta.env.MODE === "development" ? url2 : url4;
+import { url ,url2,url1} from "../URL";
+const BASE_URL =  import.meta.env.MODE === "development" ? url1 : url2;
 
 export const UserAuth = create( 
     persist(
