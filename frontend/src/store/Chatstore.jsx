@@ -70,21 +70,28 @@ export const useChatStore = create(
     }
   },
 
-  subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
+subscribeToMessages: () => {
+  const { selectedUser } = get();
+  if (!selectedUser) return;
 
-    const socket = UserAuth?.getState().socket;
+  const socket = UserAuth?.getState().socket;
+  if (!socket) return;
 
-    socket?.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage?.senderId === selectedUser?._id;
-      if (!isMessageSentFromSelectedUser) return;
+  // Remove old listener first to avoid duplicates
+  socket.off("newMessage");
 
-      set({
-        messages: [...get().messages, newMessage],
-      });
-    });
-  },
+  socket.on("newMessage", (newMessage) => {
+    const isMessageSentFromSelectedUser =
+      newMessage?.senderId === selectedUser?._id;
+
+    if (!isMessageSentFromSelectedUser) return;
+
+    set((state) => ({
+      messages: [...state.messages, newMessage],
+    }));
+  });
+},
+
   subscribeToGlobal:()=>{
     const socket = UserAuth?.getState().socket;
         socket?.on("newGlobalMessage", (newMessage) => {
