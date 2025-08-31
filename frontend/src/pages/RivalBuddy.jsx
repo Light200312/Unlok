@@ -59,9 +59,12 @@ const RivalBuddy = () => {
   };
 
   return (
-    <div className="flex pt-20 h-[100dvh]  bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      {/* Sidebar */}
-      <aside className=" border-r bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div className="flex h-[100dvh] pt-16 bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {/* Sidebar (Chats List) */}
+      <aside
+        className={`w-full sm:w-64 border-r bg-white p-4 dark:border-gray-700 dark:bg-gray-800 
+          ${selectedUser ? "hidden sm:block" : "block"}`}
+      >
         <h2 className="mb-4 text-lg font-semibold">Chats</h2>
         <ul className="space-y-2">
           {users?.map((u, i) => (
@@ -70,7 +73,7 @@ const RivalBuddy = () => {
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
                   selectedUser?._id === u._id
                     ? "bg-blue-500 text-white"
-                    : " hover:bg-gray-200  dark:hover:bg-gray-600"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
                 onClick={() => setSelectedUser(u)}
               >
@@ -82,9 +85,22 @@ const RivalBuddy = () => {
       </aside>
 
       {/* Chat Window */}
-      <div className="flex w-full flex-1 flex-col">
+      <div
+        className={`flex w-full flex-1 flex-col ${
+          selectedUser ? "block" : "hidden sm:flex"
+        }`}
+      >
         {/* Header */}
-        <div className="border-b bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center gap-2 border-b bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          {/* Back button (only on mobile) */}
+          {selectedUser && (
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="sm:hidden rounded-lg px-2 py-1 text-sm text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              ← Back
+            </button>
+          )}
           <h3 className="text-md font-medium">
             {selectedUser ? selectedUser.username : "Select a chat"}
           </h3>
@@ -105,7 +121,7 @@ const RivalBuddy = () => {
                 }`}
               >
                 <div
-                  className={`max-w-xs rounded-lg px-3 py-2 text-sm ${
+                  className={`max-w-[75%] rounded-lg px-3 py-2 text-sm break-words ${
                     m?.senderId === userId
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
@@ -127,42 +143,44 @@ const RivalBuddy = () => {
         </div>
 
         {/* Input */}
-        <form
-          className="flex w-full items-center gap-2 border-t bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
-          onSubmit={handleSend}
-        >
-          {/* Image Upload */}
-          <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-            📷
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </label>
-
-          <input
-            name="text"
-            value={messageData.text}
-            onChange={(e) =>
-              setMessageData({ ...messageData, [e.target.name]: e.target.value })
-            }
-            type="text"
-            placeholder="Type a message..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-          />
-
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+        {selectedUser && (
+          <form
+            className="flex w-full items-center gap-2 border-t bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+            onSubmit={handleSend}
           >
-            Send
-          </button>
-        </form>
+            {/* Image Upload */}
+            <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+              📷
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+
+            <input
+              name="text"
+              value={messageData.text}
+              onChange={(e) =>
+                setMessageData({ ...messageData, [e.target.name]: e.target.value })
+              }
+              type="text"
+              placeholder="Type a message..."
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            />
+
+            <button
+              type="submit"
+              className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+            >
+              Send
+            </button>
+          </form>
+        )}
 
         {/* Image Preview */}
-        {messageData.image && (
+        {messageData.image && selectedUser && (
           <div className="border-t bg-gray-100 p-3 dark:border-gray-700 dark:bg-gray-800">
             <p className="mb-2 text-sm text-gray-600 dark:text-gray-300">
               Image Preview:

@@ -100,6 +100,8 @@ subscribeToMessages: () => {
   socket.off("newGlobalMessage");
 
   socket.on("newGlobalMessage", (newMessage) => {
+    const { globalMessages } = get();
+    if (globalMessages.some(m => m._id === newMsg._id)) return;
     set((state) => ({
       globalMessages: [...state.globalMessages, newMessage],
     }));
