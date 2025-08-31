@@ -54,14 +54,13 @@ const GlobalChat = () => {
         )}
 
         {globalMessages &&
-          globalMessages.map((message, i) => {
+          globalMessages?.map((message, i) => {
             const isMine = message.senderId?._id === authUser?._id;
             return (
               <div
                 key={i}
                 className={`chat ${isMine ? "chat-end" : "chat-start"}`}
               >
-                {/* Sender name (only show for others) */}
                 {!isMine && (
                   <div className="chat-header text-sm text-gray-500 mb-1">
                     {message.senderId?.username || "Anonymous"}

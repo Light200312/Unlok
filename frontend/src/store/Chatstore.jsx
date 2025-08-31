@@ -114,7 +114,7 @@ export const useChatStore = create(
       getStorage: () => localStorage, // default
        // ⛔ exclude messages from being persisted
       partialize: (state) => {
-        const { messages, ...rest } = state;
+        const { messages ,globalMessages, ...rest } = state;
         return rest;
       },onRehydrateStorage: () => (state) => {
         // 👇 automatically reconnect socket if authUser already exists
