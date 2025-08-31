@@ -29,7 +29,7 @@ const GlobalChat = () => {
       subscribeToGlobal();
     }
     return () => unsubscribeFromGlobal();
-  }, [authUser,inputMessage, getUsers, getGlobalMessage, subscribeToGlobal, unsubscribeFromGlobal]);
+  }, [authUser, getGlobalMessage, subscribeToGlobal]);
 
   const handleSend = (e) => {
     e.preventDefault();
