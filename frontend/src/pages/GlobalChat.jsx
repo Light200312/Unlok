@@ -14,7 +14,7 @@ const GlobalChat = () => {
     sendGlobalMessage,
   } = useChatStore();
 
-  const [inputMessage, setInputMessage] = useState("");
+  const [inputMessage, setInputMessage] = useState({text:"",image:""});
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom on new messages
@@ -34,12 +34,12 @@ const GlobalChat = () => {
 
   const handleSend = (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.text.trim()) return;
     sendGlobalMessage({
-      text: inputMessage,
+      text: inputMessage.text,
       userId: authUser._id,
     });
-    setInputMessage("");
+    setInputMessage({text:"",image:""});
   };
 
   return (
@@ -91,17 +91,25 @@ const GlobalChat = () => {
 
       {/* Input bar */}
       <form
-        onSubmit={handleSend}
+       
         className="p-4 bg-base-300 flex items-center gap-2 shadow-inner"
       >
         <input
           type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
+          name="text"
+          value={inputMessage.text}
+          onChange={(e) =>{
+           
+            setInputMessage({...inputMessage,[e.target.name]:e.target.value})
+            
+          }}
           placeholder="Type a message..."
           className="input input-bordered flex-1"
         />
-        <button type="submit" className="btn btn-success">
+        <button onClick={(e)=>{
+          e.preventDefault();
+          handleSend(e)
+        }} type="submit" className="btn btn-success">
           Send
         </button>
       </form>

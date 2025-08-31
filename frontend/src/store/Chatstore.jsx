@@ -61,7 +61,7 @@ export const useChatStore = create(
   },
   //remember to send userId in body
     sendGlobalMessage: async (messageData) => {
-    const { selectedUser, globalMessages } = get();
+    const {  globalMessages } = get();
     try {
       const res = await axios.post(`${url}/messages/globalMessage`, messageData);
       set({ globalMessages: [...globalMessages, res.data] });
