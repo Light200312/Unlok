@@ -2,12 +2,12 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import {toast} from "react-hot-toast"
 import axios from "axios";
-import { url } from "../URL";
+import { url ,url1,url2} from "../URL";
 import { io } from "socket.io-client";
 import { persist } from "zustand/middleware";
 // import {userAuth} from ""
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "https://unlok-backend.onrender.com";
+const BASE_URL = import.meta.env.MODE === "development" ?url1 : url2;
 
 export const UserAuth = create( 
     persist(
