@@ -24,11 +24,12 @@ const GlobalChat = () => {
   useEffect(() => {
     if (authUser?._id) {
       getUsers(authUser._id);
+      
       getGlobalMessage();
       subscribeToGlobal();
     }
     return () => unsubscribeFromGlobal();
-  }, [authUser, getUsers, getGlobalMessage, subscribeToGlobal, unsubscribeFromGlobal]);
+  }, [authUser,inputMessage, getUsers, getGlobalMessage, subscribeToGlobal, unsubscribeFromGlobal]);
 
   const handleSend = (e) => {
     e.preventDefault();
