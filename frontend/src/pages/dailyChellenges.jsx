@@ -72,7 +72,7 @@ const ChallengeComponent = () => {
           {/* Generate Button */}
           <div className="text-center my-4">
             <span
-              onClick={() => generateChallenges(userId,"daily")}
+              onClick={() => {  if(challenges.length===0) generateChallenges(userId,"daily")}}
               className="text-sm border rounded-md p-1 hover:bg-muted hover:scale-105 transition text-white cursor-pointer"
               style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
             >

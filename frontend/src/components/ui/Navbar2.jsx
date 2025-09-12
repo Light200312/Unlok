@@ -75,9 +75,9 @@ export const NavItems = ({ items, className, onItemClick }) => {
         setDropdownOpen(false);
       }}
       className={cn(
-        "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-base-content/70 transition duration-200 hover:text-base-content lg:flex lg:space-x-2",
+        "hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-base-content/70 transition duration-200 hover:text-base-content lg:flex lg:space-x-2",
         className
-      )}
+    )}
     >
       {/* DROPDOWN PARENT */}
       <div className="relative">

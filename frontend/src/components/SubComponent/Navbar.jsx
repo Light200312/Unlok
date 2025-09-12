@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { UserAuth } from "../../store/userAuthStore";
+import { SquareMenu, Menu } from "lucide-react";
 import {
   Navbar,
   NavBody,
@@ -13,7 +14,7 @@ import {
   MobileNavMenu,
 } from "../ui/Navbar2.jsx";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, sidebarOpen, setsidebarOpen }) => {
   const { authUser, logout } = UserAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -29,11 +30,19 @@ const Layout = ({ children }) => {
   ];
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full mr-10 ">
       {/* Navbar */}
       <Navbar>
         <NavBody>
-          <NavbarLogo />
+          <div className="flex gap-2">
+            <div
+              onClick={() => setsidebarOpen(!sidebarOpen)}
+              className="cursor-pointer flex items-center"
+            >
+              <SquareMenu className="h-6 " />
+            </div>
+            <NavbarLogo />
+          </div>
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
             <NavbarButton variant="secondary" onClick={logout}>
@@ -45,14 +54,27 @@ const Layout = ({ children }) => {
         {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
-            <NavbarLogo />
+            <div className="flex gap-2 ">
+              <SquareMenu
+                onClick={() => {
+                  setsidebarOpen(!sidebarOpen);
+                  console.log(sidebarOpen);
+                }}
+                className=" h-16"
+              />
+
+              <NavbarLogo />
+            </div>
             <MobileNavToggle
               isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             />
           </MobileNavHeader>
 
-          <MobileNavMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)}>
+          <MobileNavMenu
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+          >
             {navItems.map((item, idx) => (
               <Link
                 key={`mobile-link-${idx}`}
