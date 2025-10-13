@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { matrixAuthStore } from "../store/matrixStore";
-import { useChallengeBatchStore } from "../store/ChallengeBatch";
+import { useChallengeStore } from "../store/ChallengeStore";
 import { UserAuth } from "../store/userAuthStore";
 import { CardSpotlight } from "../components/ui/card-spotlight"; // Adjusted path
 
@@ -17,16 +17,7 @@ const WeeklyChallenges = () => {
         rank,
         loading,
         delete_challenge,
-      } = useChallengeBatchStore();
-      
-      const safeChallenges = Array.isArray(weekchallenges) ? weekchallenges : (weekchallenges?.data?.weekchallenges || weekchallenges?.weekchallenges || []);
-      
-        useEffect(() => {
-          if (!safeChallenges.length) {
-            fetchChallenges(userId, 'weekly');  // Auto-fetch if empty
-          }
-        }, [userId, safeChallenges.length]);
-      
+      } = useChallengeStore();
     
       const [openDescIndex, setOpenDescIndex] = useState(null);
     
@@ -37,22 +28,7 @@ const WeeklyChallenges = () => {
         }
       }, [userId]);
   return (
-    <div
-    data-theme="halloween"
-         className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
-         style={{
-           backgroundImage: `url(./challengebg.jpg)`,
-           backgroundSize: "cover",
-           backgroundPosition: "bottom",
-           backgroundRepeat: "no-repeat",
-           backgroundAttachment: "fixed",
-           position: "relative",
-         }}
-       >
-         {/* ✅ Dark overlay */}
-         {/* <div
-           className="absolute inset-0 bg-black/20 z-0"
-         ></div> */}
+
    
          <CardSpotlight
            className="w-full max-w-2xl p-6 border-4 border-primary rounded-lg z-10"
@@ -90,7 +66,7 @@ const WeeklyChallenges = () => {
              {loading && <p className="text-center text-muted-foreground">Loading...</p>}
    
              <ul className="space-y-4 mt-4">
-               {safeChallenges.map((c, i) => {
+               {weekchallenges.map((c, i) => {
                  const isCompleted = c.completed || false;
                  return (
                    <li
@@ -128,10 +104,11 @@ const WeeklyChallenges = () => {
                                await completeChallenge({
                                  userId,
                                  category: c.metricCategory,
-                              challengeIndex:i
+                                 metric: c.subMetric,
+                                 cId: c._id,
                                });
    
-                               await fetchChallenges(userId, "weekly");
+                               await fetchChallenges(userId, "daily");
                              }
                            }}
                            className="bg-background text-white border border-primary bg-base-300 rounded-md p-1"
@@ -175,7 +152,6 @@ const WeeklyChallenges = () => {
              </div> */}
            </div>
          </CardSpotlight>
-       </div>
   )
 }
 

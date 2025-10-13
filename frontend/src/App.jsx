@@ -12,11 +12,14 @@ const MonthlyChallenge = lazy(() => import("./pages/MonthlyChallenge"));
 
 const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
 const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
-import Navbar from "./components/SubComponent/Navbar";
+// import Navbar from "./components/SubComponent/Navbar";
+import Navbar from "./components/SubComponent/SimpleNavbar";
+
 const CanvasRevealEffectDemo = lazy(() => import("./components/CanvarCover"));
 import { matrixAuthStore } from "./store/matrixStore";
 import RivalBuddy from "./pages/RivalBuddy";
 import SidebarLayout from "./components/Sidebar";
+import Carousel from "./components/QuestSlider";
 const GlobalChat = lazy(() => import("./pages/GlobalChat"));
 const App = () => {
   const { authUser } = UserAuth();
@@ -49,11 +52,7 @@ const App = () => {
 
             {/* Protected Routes */}
 
-            <Route
-              path="/"
-              // element={authUser?.username ? <Home /> : <Navigate to="/login" />}
-              element={<Home />}
-            />
+        x
             <Route element={<SidebarLayout setsidebarOpen={setsidebarOpen}  sidebarOpen={sidebarOpen}/>}>
               <Route
                 path="/dailychellenge"
@@ -65,10 +64,21 @@ const App = () => {
                   )
                 }
               />
+                  <Route
+              path="/"
+              // element={authUser?.username ? <Home /> : <Navigate to="/login" />}
+              element={<Home />}
+            />
               <Route
                 path="/globalChat"
                 element={
                   authUser?.username ? <GlobalChat /> : <Navigate to="/login" />
+                }
+              />
+                <Route
+                path="/slider"
+                element={
+                  authUser?.username ? <Carousel /> : <Navigate to="/login" />
                 }
               />
               <Route

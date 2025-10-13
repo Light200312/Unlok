@@ -9,7 +9,7 @@ import ChallengeRoutes from "./routes/ChallengeRoutes.js"
 import axios from "axios";
 import { app, server} from "./config/socket.js"
 import bodyParser from "body-parser";
-
+import ChallengeBatchRoutes from "./routes/ChallengeBatchRoutes.js"
 import messageRoutes from "./routes/MessageRoutes.js"
 dotenv.config();
 connectDB();
@@ -48,5 +48,6 @@ app.use('/api/messages', messageRoutes);
 app.use("/",openairoutes)
 app.use("/api/user", userRoutes);
 app.use("/api/challenge", ChallengeRoutes);
+app.use("/api/challengeBatch", ChallengeBatchRoutes);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT,'0.0.0.0', () => console.log(`🚀 Server running on http://localhost:${PORT}`));

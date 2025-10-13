@@ -2,8 +2,7 @@
 import { useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { matrixAuthStore } from "../store/matrixStore";
-// import { useChallengeStore } from "../store/ChallengeStore";
-import { useChallengeBatchStore } from "../store/ChallengeBatch";
+import { useChallengeStore } from "../store/ChallengeStore";
 import { UserAuth } from "../store/userAuthStore";
 import { CardSpotlight } from "../components/ui/card-spotlight"; // Adjusted path
 
@@ -19,17 +18,9 @@ const ChallengeComponent = () => {
     rank,
     loading,
     delete_challenge,
-  } = useChallengeBatchStore();
+  } = useChallengeStore();
 
   const [openDescIndex, setOpenDescIndex] = useState(null);
-
-const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.data?.challenges || challenges?.challenges || []);
-
-  useEffect(() => {
-    if (!safeChallenges.length) {
-      fetchChallenges(userId, 'daily');  // Auto-fetch if empty
-    }
-  }, [userId, safeChallenges.length]);
 
   useEffect(() => {
     if (userId) {
@@ -39,25 +30,20 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
   }, [userId]);
 
   return (
-    <div
-    data-theme="forest"
-      className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
-      style={{
-        backgroundImage: `url(./challengebg.jpg)`,
-        backgroundSize: "cover",
-        backgroundPosition: "bottom",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
-        position: "relative",
-      }}
-    >
-      {/* ✅ Dark overlay */}
-      <div
-        className="absolute inset-0 bg-black/20 z-0"
-      ></div>
+//     <div
+//     data-theme="forest"
+// className="flex justify-center bg-secondary w-full"
+
+//     //   className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
+     
+//     >
+//       {/* ✅ Dark overlay */}
+//       {/* <div
+//         className="absolute inset-0 bg-black/20 z-0"
+//       ></div> */}
 
       <CardSpotlight
-        className="w-full max-w-2xl p-6 border-4 border-primary rounded-lg z-10"
+        className="w-fit max-w-2xl p-6 border-4 border-primary rounded-lg z-10"
         style={{
           // ✅ Optional: more theme-aware, but still neon styled
           boxShadow: "0 0 15px rgba(0, 191, 255, 0.7)",
@@ -92,7 +78,7 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
           {loading && <p className="text-center text-muted-foreground">Loading...</p>}
 
           <ul className="space-y-4 mt-4">
-            { safeChallenges.map((c, i) => {
+            {challenges.map((c, i) => {
               const isCompleted = c.completed || false;
               return (
                 <li
@@ -130,7 +116,8 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
                             await completeChallenge({
                               userId,
                               category: c.metricCategory,
-                             challengeIndex:i
+                              metric: c.subMetric,
+                              cId: c._id,
                             });
 
                             await fetchChallenges(userId, "daily");
@@ -177,7 +164,7 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
           </div> */}
         </div>
       </CardSpotlight>
-    </div>
+    // </div>
   );
 };
 

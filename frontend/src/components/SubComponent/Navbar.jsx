@@ -23,10 +23,10 @@ const Layout = ({ children, sidebarOpen, setsidebarOpen }) => {
     { name: "Daily Challenges", link: "/dailychellenge" },
     { name: "Weekly Challenges", link: "/weeklychallenge" },
     { name: "Monthly Challenges", link: "/monthlychallenge" },
+    { name: "Global Rankings", link: "/globalRanking" },
+    { name: "Stats and Ranking", link: "/statsAndRanking" },
     { name: "Comunity Chat", link: "/globalChat" },
     { name: "Rival Buddy", link: "/buddyChat" },
-    { name: "Stats and Ranking", link: "/statsAndRanking" },
-    { name: "Global Rankings", link: "/globalRanking" },
   ];
 
   return (

@@ -10,7 +10,8 @@ const matrixSchema = new mongoose.Schema({
   type:{type:String,default:"general"},
   category: String,
   metrics: [metricSchema],
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
 }, { timestamps: true });
 
 const Matrix = mongoose.model('Matrix', matrixSchema);

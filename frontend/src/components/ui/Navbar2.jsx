@@ -64,15 +64,18 @@ export const NavBody = ({ children, className, visible }) => {
 export const NavItems = ({ items, className, onItemClick }) => {
   const [hovered, setHovered] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownOpen2, setDropdownOpen2] = useState(false);
 
-  const dropdownItems = items.slice(0, 3); // first 3 go in dropdown
-  const normalItems = items.slice(3); // rest stay inline
+  const QuestItems = items.slice(0, 5); // first 3 go in dropdown
+  const CommunityItems = items.slice(5, 7); // first 3 go in dropdown
+  // const normalItems = items.slice(5); // rest stay inline
 
   return (
     <motion.div
       onMouseLeave={() => {
         setHovered(null);
         setDropdownOpen(false);
+        setDropdownOpen2(false);
       }}
       className={cn(
         "hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-base-content/70 transition duration-200 hover:text-base-content lg:flex lg:space-x-2",
@@ -84,9 +87,9 @@ export const NavItems = ({ items, className, onItemClick }) => {
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
          
-          className="relative px-4 py-2 text-base-content/70 rounded-full hover:bg-base-300 transition"
+          className="relative px-16 py-2 text-base-content/70 rounded-full hover:bg-base-300 transition"
         >
-          Menu
+          Quests
         </button>
 
         <AnimatePresence>
@@ -96,9 +99,42 @@ export const NavItems = ({ items, className, onItemClick }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 mt-2 flex flex-col rounded-lg bg-base-100 shadow-lg border border-base-300 overflow-hidden z-50"
+              className="absolute left-1  flex flex-col rounded-lg bg-base-100 shadow-lg border border-base-300 overflow-hidden z-50"
             >
-              {dropdownItems.map((item, idx) => (
+              {QuestItems.map((item, idx) => (
+                <RouterLink
+                  key={`dropdown-${idx}`}
+                  to={item.link}
+                  onClick={onItemClick}
+                  className="px-4 py-2 text-sm text-base-content hover:bg-base-200 transition"
+                >
+                  {item.name}
+                </RouterLink>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+       {/* DROPDOWN PARENT */}
+      <div className="relative">
+        <button
+          onClick={() => setDropdownOpen2(!dropdownOpen2)}
+         
+          className="relative px-16 py-2 text-base-content/70 rounded-full hover:bg-base-300 transition"
+        >
+          Community
+        </button>
+
+        <AnimatePresence>
+          {dropdownOpen2 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute left-8  flex flex-col rounded-lg bg-base-100 shadow-lg border border-base-300 overflow-hidden z-50"
+            >
+              {CommunityItems.map((item, idx) => (
                 <RouterLink
                   key={`dropdown-${idx}`}
                   to={item.link}
@@ -114,7 +150,7 @@ export const NavItems = ({ items, className, onItemClick }) => {
       </div>
 
       {/* NORMAL ITEMS */}
-      {normalItems.map((item, idx) => (
+      {/* {CommunityItems.map((item, idx) => (
         <RouterLink
           key={`link-${idx}`}
           to={item.link}
@@ -130,7 +166,7 @@ export const NavItems = ({ items, className, onItemClick }) => {
           )}
           <span className="relative z-20">{item.name}</span>
         </RouterLink>
-      ))}
+      ))} */}
     </motion.div>
   );
 };

@@ -12,7 +12,7 @@ const resourceSchema = new mongoose.Schema({
 
 const challengeSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-
+  
   // Challenge info
   title: { type: String, required: true },
   description: { type: String },
