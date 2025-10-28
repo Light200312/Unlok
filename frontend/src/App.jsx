@@ -12,6 +12,7 @@ const MonthlyChallenge = lazy(() => import("./pages/MonthlyChallenge"));
 
 const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
 const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
+import PostEditor from "./pages/PostsEditor";
 // import Navbar from "./components/SubComponent/Navbar";
 import Navbar from "./components/SubComponent/SimpleNavbar";
 
@@ -73,6 +74,12 @@ const App = () => {
                 path="/globalChat"
                 element={
                   authUser?.username ? <GlobalChat /> : <Navigate to="/login" />
+                }
+              />
+               <Route
+                path="/postEditor"
+                element={
+                  authUser?.username ? <PostEditor /> : <Navigate to="/login" />
                 }
               />
                 <Route

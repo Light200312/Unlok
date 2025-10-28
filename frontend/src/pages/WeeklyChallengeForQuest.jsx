@@ -24,7 +24,7 @@ const WeeklyChallenges = () => {
       useEffect(() => {
         if (userId) {
           fetchChallenges(userId, "weekly");
-          calculateRank(userId);
+          // calculateRank(userId);
         }
       }, [userId]);
   return (

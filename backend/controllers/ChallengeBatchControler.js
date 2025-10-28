@@ -196,42 +196,81 @@ export const fetchChallenges = async (req, res) => {
 };
 
 // 🔹 Mark challenge complete
+// 🔹 Mark challenge complete + update matrix subMetric
 export const markChallengeComplete = async (req, res) => {
-  const { userId, category  , challengeIndex } = req.body;
+  const { userId, category, challengeIndex } = req.body;
+
   try {
+    // ✅ Step 1: Find challenge batch
     const batch = await ChallengeBatch.findOne({ userId, type: category });
     if (!batch) return res.status(404).json({ error: "Challenge batch not found" });
 
+    // ✅ Step 2: Find the challenge inside batch
     const challenge = batch.challenges[challengeIndex];
     if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+    if (challenge.completed)
+      return res.status(409).json({ error: "Challenge already completed" });
 
-    if (challenge.completed) return res.status(409).json({ error: "Already completed" });
+    // ✅ Step 3: Get category and subMetric
+    const { metricCategory, subMetric } = challenge;
 
+    // ✅ Step 4: Find user's matching Matrix
+    const matrix = await Matrix.findOne({ userId, category: metricCategory, type: "general" });
+    if (!matrix) return res.status(404).json({ error: "Related Matrix not found" });
+
+    // ✅ Step 5: Find target sub-metric in the matrix
+    const targetMetric = matrix.metrics.find(m => m.name === subMetric);
+    if (!targetMetric)
+      return res.status(404).json({ error: `SubMetric "${subMetric}" not found in ${metricCategory}` });
+
+    // ✅ Step 6: Update submetric value (add challenge value)
+    const incrementMap = { daily: 5, weekly: 10, monthly: 20 };
+const increment = incrementMap[category] || 0;
+
+targetMetric.value = Math.min(100, targetMetric.value + increment);
+
+    // ✅ Step 7: Mark challenge as complete
     challenge.completed = true;
     challenge.completedAt = new Date();
-    await batch.save();
 
-    res.status(200).json({ message: "Challenge marked complete", batch });
+    // ✅ Step 8: Save both documents
+    await Promise.all([batch.save(), matrix.save()]);
+
+    // ✅ Step 9: Return updated data
+    res.status(200).json({
+      message: "Challenge completed successfully",
+      updatedMetric: {
+        category: metricCategory,
+        subMetric: subMetric,
+        newValue: targetMetric.value
+      },
+      batchProgress: `${batch.challenges.filter(c => c.completed).length}/${batch.challenges.length}`,
+    });
+
   } catch (err) {
-    console.error("❌ Error marking complete:", err.message);
-    res.status(500).json({ error: "Failed to update challenge" });
+    console.error("❌ Error marking challenge complete:", err.message);
+    res.status(500).json({ error: "Failed to complete challenge", details: err.message });
   }
 };
+
 
 // 🔹 Delete batch
 export const deleteChallengeBatch = async (req, res) => {
   const { userId, challengeType } = req.params;
   try {
-    const deleted = await ChallengeBatch.findOneAndDelete({ userId, type: challengeType });
-    if (!deleted) return res.status(404).json({ error: "Batch not found" });
+    const batch = await ChallengeBatch.findOne({ userId, type: challengeType });
+    if (!batch) return res.status(404).json({ error: "Batch not found" });
 
-    res.status(200).json({ message: "Challenge batch deleted", deleted });
+    await Post.deleteMany({ userId, batchId: batch._id });
+    await batch.deleteOne();
+
+    res.status(200).json({ message: "🗑️ Batch and posts deleted" });
   } catch (err) {
     console.error("❌ Error deleting batch:", err.message);
     res.status(500).json({ error: "Failed to delete batch" });
   }
 };
-
+ 
 // 🔹 Rank calculation
 const getRankInfo = (points) =>
   [...rankTiers].reverse().find((tier) => points >= tier.points) || rankTiers.at(-1);

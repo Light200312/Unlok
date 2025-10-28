@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { matrixAuthStore } from "../store/matrixStore";
-import { useChallengeStore } from "../store/ChallengeStore";
+import { useChallengeBatchStore } from "../store/ChallengeBatch";
+
 import { UserAuth } from "../store/userAuthStore";
 import { CardSpotlight } from "../components/ui/card-spotlight"; // Adjusted path
 
@@ -17,14 +18,16 @@ const WeeklyChallenges = () => {
         rank,
         loading,
         delete_challenge,
-      } = useChallengeStore();
+      } = useChallengeBatchStore();
     
       const [openDescIndex, setOpenDescIndex] = useState(null);
     
+const safeChallenges = Array.isArray(monthchallenges) ? monthchallenges : (monthchallenges?.data?.monthchallenges || monthchallenges?.monthchallenges || []);
+
       useEffect(() => {
         if (userId) {
           fetchChallenges(userId, "monthly");
-          calculateRank(userId);
+          // calculateRank(userId);
         }
       }, [userId]);
   return (
@@ -66,7 +69,7 @@ const WeeklyChallenges = () => {
              {loading && <p className="text-center text-muted-foreground">Loading...</p>}
    
              <ul className="space-y-4 mt-4">
-               {monthchallenges.map((c, i) => {
+               {safeChallenges.map((c, i) => {
                  const isCompleted = c.completed || false;
                  return (
                    <li

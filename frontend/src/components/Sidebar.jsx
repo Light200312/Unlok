@@ -10,9 +10,10 @@ import {
   Bookmark,
   MoreHorizontal,
   SquarePlus,
-  User,Sword,Swords ,Trophy ,X
+  User,Sword,Swords ,Trophy ,X,Scissors
 } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
+import { UserAuth } from "../store/userAuthStore";
 
 // const links = [
 //   { name: "Daily Challenges", link: "/dailychellenge", icon: <Clock size={20} /> },
@@ -25,6 +26,8 @@ import { Link, Outlet } from "react-router-dom";
 // ];
 
 const SidebarLayout = ({ setsidebarOpen, sidebarOpen: open }) => {
+    const { authUser, logout } = UserAuth();
+  
   const toggleSidebar = () => setsidebarOpen(!open);
  const [QuestOpen, setQuestOpen] = useState(false);
    function NavItem({ icon, label, badge ,PageLink}) {
@@ -76,12 +79,13 @@ const SidebarLayout = ({ setsidebarOpen, sidebarOpen: open }) => {
                  
                  </div>
                 
-                 
+                 {/* postEditor */}
                  <NavItem icon={<Send  />} PageLink={"/buddyChat"} label="Messages" badge="4" />
+                 <NavItem icon={<Scissors />} PageLink={"/postEditor"} label="Draft Post" />
                  <NavItem icon={<OctagonAlert  />} label="Notifications" />
                  <NavItem icon={<Crown  />} PageLink={"/globalRanking"} label="Rankings" />
                  <NavItem icon={<Trophy  />} PageLink={"/statsAndRanking"} label="User Stats" />
-              
+              <div className="px-16.5">  <button className="btn btn-warning " onClick={logout}> Logout</button></div>
         </nav>
       </div>
 

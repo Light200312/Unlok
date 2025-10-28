@@ -3,8 +3,15 @@ import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
+
     username: { type: String, required: true, unique: true },
     email: { type: String },
+    communityPoints: { type: Number, default: 0 },
+verifiedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+clan: { type: mongoose.Schema.Types.ObjectId, ref: "Clan", default: null },
+clanRole: { type: String, enum: ["leader", "co-leader", "member", "none"], default: "none" },
+
+
     password: { type: String, required: true },
     profilePic: {
       type: String,

@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import matrixRoutes from './routes/matrixRoutes.js';
 import openairoutes from "./routes/OpenAiRoutes.js"
 import userRoutes from "./routes/userRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
 import ChallengeRoutes from "./routes/ChallengeRoutes.js"
 import axios from "axios";
 import { app, server} from "./config/socket.js"
@@ -44,6 +45,7 @@ app.get("/" ,(req,res)=>{
 })
 
 app.use('/api/matrices', matrixRoutes);
+app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes);
 app.use("/",openairoutes)
 app.use("/api/user", userRoutes);

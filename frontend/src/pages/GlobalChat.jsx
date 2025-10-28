@@ -2,18 +2,26 @@ import React, { useEffect, useState, useRef } from "react";
 import { useChatStore } from "../store/Chatstore";
 import { UserAuth } from "../store/userAuthStore";
 import { Link } from "react-router-dom";
+import { usePostStore } from "../store/PostStore";
+import PostCard from "../components/SubComponent/PostCard";
 import {
   Home,
   Search,
   Compass,
-  Clapperboard,OctagonAlert ,
-  Heart,Crown ,
-  MessageCircle, Telescope ,
+  Clapperboard,
+  OctagonAlert,
+  Heart,
+  Crown,
+  MessageCircle,
+  Telescope,
   Send,
   Bookmark,
   MoreHorizontal,
   SquarePlus,
-  User,Sword,Swords ,Trophy 
+  User,
+  Sword,
+  Swords,
+  Trophy,
 } from "lucide-react";
 
 const GlobalChat = () => {
@@ -28,78 +36,23 @@ const GlobalChat = () => {
     unsubscribeFromGlobal,
     sendGlobalMessage,
   } = useChatStore();
+const {
+  fetchAllPosts,
+  fetchUserPostsByStatus,
+  completedPosts,
+  posts,
+  loading,
+  fetchLatestPost,
+  currentPage,
+  totalPages,
+} = usePostStore();
 
-  // -----------------------------
-  // Instagram-style Post Card
-  // -----------------------------
-  function PostCard() {
+  function NavItem({ icon, label, badge, PageLink }) {
     return (
-      <div className="w-full sm:w-[450px] md:w-[500px] lg:w-[550px] bg-black text-white rounded-2xl border border-neutral-800 overflow-hidden my-6 shadow-md hover:shadow-lg transition-all duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <img
-              src="/profile.jpg"
-              alt="user"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <span className="font-semibold text-sm">username</span>
-          </div>
-          <MoreHorizontal className="text-neutral-400 cursor-pointer" />
-        </div>
-
-        {/* Post content */}
-        <div className="w-full">
-          <img
-            src="/panelbg.jpg"
-            alt="post"
-            className="w-full object-cover max-h-[500px] transition-transform duration-300 hover:scale-[1.02]"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-between px-4 py-3">
-          <div className="flex gap-5">
-            <Heart className="hover:text-red-500 cursor-pointer transition-colors" />
-            <MessageCircle className="hover:text-neutral-300 cursor-pointer transition-colors" />
-            <Send className="hover:text-neutral-300 cursor-pointer transition-colors" />
-          </div>
-          <Bookmark className="hover:text-neutral-300 cursor-pointer transition-colors" />
-        </div>
-
-        {/* Likes */}
-        <div className="px-4 text-sm font-semibold">1,024 likes</div>
-
-        {/* Caption */}
-        <div className="px-4 pb-3 text-sm">
-          <span className="font-semibold">username </span>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. 💫
-        </div>
-
-        {/* Comments */}
-        <div className="px-4 pb-3 text-sm text-neutral-400">
-          View all 42 comments
-        </div>
-
-        {/* Add comment input */}
-        <div className="border-t border-neutral-800 px-4 py-3 flex items-center">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            className="bg-transparent outline-none text-sm flex-1 placeholder-neutral-500"
-          />
-          <button className="text-emerald-500 text-sm font-semibold">Post</button>
-        </div>
-      </div>
-    );
-  }
-
-  // -----------------------------
-  // Sidebar Nav Items
-  // -----------------------------
-  function NavItem({ icon, label, badge ,PageLink}) {
-    return (
-      <Link to={PageLink} className="relative flex items-center gap-4 px-4 py-2 hover:bg-neutral-800 rounded-xl cursor-pointer transition-all w-fit sm:w-full">
+      <Link
+        to={PageLink}
+        className="relative flex items-center gap-4 px-4 py-2 hover:bg-neutral-800 rounded-xl cursor-pointer transition-all w-fit sm:w-full"
+      >
         <div className="relative">
           {icon}
           {badge && (
@@ -153,6 +106,30 @@ const GlobalChat = () => {
     sendGlobalMessage(messageData);
     setMessageData({ text: "", image: "", userId: authUser._id });
   };
+useEffect(() => {
+  fetchLatestPost(1);
+}, []);
+const scrollTimeout = useRef(null);
+const handleScroll = (e) => {
+  if (scrollTimeout.current) return;
+  scrollTimeout.current = setTimeout(() => {
+    const bottom =
+      e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 100;
+    if (bottom && !loading && currentPage < totalPages) {
+      fetchLatestPost(currentPage + 1);
+    }
+    scrollTimeout.current = null;
+  }, 300);
+};
+
+
+// attach scroll listener to main feed
+const mainRef = useRef(null);
+useEffect(() => {
+  const mainEl = mainRef.current;
+  if (mainEl) mainEl.addEventListener("scroll", handleScroll);
+  return () => mainEl && mainEl.removeEventListener("scroll", handleScroll);
+}, [loading, currentPage, totalPages]);
 
   // -----------------------------
   // Layout
@@ -164,35 +141,70 @@ const GlobalChat = () => {
         <div className="mt-10"></div>
         <nav className="flex flex-col p-1 gap-4 w-full">
           <NavItem PageLink="/globalChat" icon={<Home />} label="Home" />
-          <NavItem PageLink="/" icon={<Telescope  />} label="Search" />
+          <NavItem PageLink="/" icon={<Telescope />} label="Search" />
           <NavItem icon={<Compass />} label="Explore" />
-          <div onClick={()=>setQuestOpen(!QuestOpen)}> <NavItem   icon={<Swords />} label="Quests" />  
-          {QuestOpen && (<div className="ml-20   bg-[#1e1e1e] p-2 rounded "> 
-           <ul className="flex flex-col gap-1 text-sm">
-            <li className="hover:bg-[#2e2e2e] p-1 rounded"><Link  to="/dailychellenge">Daily Quests</Link></li>
-            <li className="hover:bg-[#2e2e2e] p-1 rounded" ><Link to="/weeklychallenge">Weekly Quests</Link></li>
-            <li className="hover:bg-[#2e2e2e] p-1 rounded"><Link to="/monthlychallenge">Monthly Quests</Link></li>
-            </ul>
-            
-
-          </div>)}
-          
+          <div onClick={() => setQuestOpen(!QuestOpen)}>
+            {" "}
+            <NavItem icon={<Swords />} label="Quests" />
+            {QuestOpen && (
+              <div className="ml-20   bg-[#1e1e1e] p-2 rounded ">
+                <ul className="flex flex-col gap-1 text-sm">
+                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
+                    <Link to="/dailychellenge">Daily Quests</Link>
+                  </li>
+                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
+                    <Link to="/weeklychallenge">Weekly Quests</Link>
+                  </li>
+                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
+                    <Link to="/monthlychallenge">Monthly Quests</Link>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
-         
-          
-          <NavItem icon={<Send  />} PageLink={"/buddyChat"} label="Messages" badge="4" />
-          <NavItem icon={<OctagonAlert  />} label="Notifications" />
-          <NavItem icon={<Crown  />} PageLink={"/globalRanking"} label="Rankings" />
-          <NavItem icon={<Trophy  />} PageLink={"/statsAndRanking"} label="User Stats" />
+
+          <NavItem
+            icon={<Send />}
+            PageLink={"/buddyChat"}
+            label="Messages"
+            badge="4"
+          />
+          <NavItem icon={<OctagonAlert />} label="Notifications" />
+          <NavItem
+            icon={<Crown />}
+            PageLink={"/globalRanking"}
+            label="Rankings"
+          />
+          <NavItem
+            icon={<Trophy />}
+            PageLink={"/statsAndRanking"}
+            label="User Stats"
+          />
         </nav>
       </aside>
 
       {/* Feed (center) */}
-      <main className="flex-1 sm:ml-56 flex flex-col items-center pt-10 pb-20 overflow-y-auto">
-        <PostCard />
-        <PostCard />
-        <PostCard />
-      </main>
+     {/* Feed (center) */}
+<main
+  ref={mainRef}
+  className="flex-1 sm:ml-56 flex flex-col items-center pt-10 pb-20 overflow-y-auto"
+>
+  {loading && currentPage === 1 ? (
+    <div className="text-neutral-500 mt-10">Loading posts...</div>
+  ) : completedPosts.length === 0 ? (
+    <div className="text-neutral-500 mt-10">No live posts yet</div>
+  ) : (
+    completedPosts
+      .filter((p) => p.live === true)
+      .map((post) => <PostCard key={post._id} post={post} />)
+  )}
+
+  {/* Loader indicator for next page */}
+  {loading && currentPage > 1 && (
+    <div className="text-neutral-500 text-sm mt-4">Loading more posts...</div>
+  )}
+</main>
+
 
       {/* Right Side Global Chat */}
       <div className="hidden sticky -top-0 right-0 xl:flex flex-col w-[350px] border-l border-neutral-800 h-screen bg-black">

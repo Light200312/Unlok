@@ -25,7 +25,7 @@ const ChallengeComponent = () => {
   useEffect(() => {
     if (userId) {
       fetchChallenges(userId, "daily");
-      calculateRank(userId);
+      // calculateRank(userId);
     }
   }, [userId]);
 

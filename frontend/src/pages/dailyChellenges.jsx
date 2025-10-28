@@ -1,47 +1,85 @@
-"use client";
+
 import { useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { matrixAuthStore } from "../store/matrixStore";
-// import { useChallengeStore } from "../store/ChallengeStore";
 import { useChallengeBatchStore } from "../store/ChallengeBatch";
+import { usePostStore } from "../store/PostStore"; // ✅ New
 import { UserAuth } from "../store/userAuthStore";
-import { CardSpotlight } from "../components/ui/card-spotlight"; // Adjusted path
+import { CardSpotlight } from "../components/ui/card-spotlight";
+import toast from "react-hot-toast";
 
 const ChallengeComponent = () => {
-  const { authUser } = UserAuth();  const location = useLocation();
+  const { authUser } = UserAuth();
+  const location = useLocation();
   const userId = authUser?._id;
+
   const {
     generateChallenges,
     fetchChallenges,
-    completeChallenge,
-    calculateRank,
     challenges,
-    rank,
     loading,
-    delete_challenge,
   } = useChallengeBatchStore();
 
-  const [openDescIndex, setOpenDescIndex] = useState(null);
+  const { submitSolution, submitting } = usePostStore();
 
-const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.data?.challenges || challenges?.challenges || []);
+  const [openDescIndex, setOpenDescIndex] = useState(null);
+  const [formData, setFormData] = useState({}); // Stores text + image per challenge
+
+  const safeChallenges = Array.isArray(challenges)
+    ? challenges
+    : challenges?.data?.challenges || challenges?.challenges || [];
 
   useEffect(() => {
-    if (!safeChallenges.length) {
-      fetchChallenges(userId, 'daily');  // Auto-fetch if empty
+    if (!safeChallenges.length && userId) {
+      fetchChallenges(userId, "daily");
     }
   }, [userId, safeChallenges.length]);
 
-  useEffect(() => {
-    if (userId) {
-      fetchChallenges(userId, "daily");
-      calculateRank(userId);
+  // ✅ Handle image upload (preview & base64 conversion)
+  const handleImageUpload = (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          image: reader.result,
+          imagePreview: URL.createObjectURL(file),
+        },
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ✅ Handle solution submission
+  const handleSubmit = async (index) => {
+    const c = safeChallenges[index];
+    const entry = formData[index];
+    if (!entry?.textSummary && !entry?.image) {
+       toast.error("⚠️ Please add your Solution");
     }
-  }, [userId]);
+
+    await submitSolution({
+      userId,
+      batchType: "daily",
+      challengeIndex: index,
+      textSummary: entry.textSummary,
+      image: entry.image, // base64 image handled by backend upload
+    });
+
+    // Clear form for this challenge
+    setFormData((prev) => ({
+      ...prev,
+      [index]: { textSummary: "", image: null, imagePreview: null },
+    }));
+  };
 
   return (
     <div
-    data-theme="forest"
-      className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground" // ✅ theme-aware
+      data-theme="forest"
+      className="min-h-screen pt-24 p-2 flex items-center justify-center bg-background text-foreground"
       style={{
         backgroundImage: `url(./challengebg.jpg)`,
         backgroundSize: "cover",
@@ -51,15 +89,11 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
         position: "relative",
       }}
     >
-      {/* ✅ Dark overlay */}
-      <div
-        className="absolute inset-0 bg-black/20 z-0"
-      ></div>
+      <div className="absolute inset-0 bg-black/20 z-0"></div>
 
       <CardSpotlight
         className="w-full max-w-2xl p-6 border-4 border-primary rounded-lg z-10"
         style={{
-          // ✅ Optional: more theme-aware, but still neon styled
           boxShadow: "0 0 15px rgba(0, 191, 255, 0.7)",
           backgroundColor: "rgba(10, 10, 35, 0.7)",
           backdropFilter: "blur(10px)",
@@ -68,113 +102,111 @@ const safeChallenges = Array.isArray(challenges) ? challenges : (challenges?.dat
         radius={350}
       >
         <div className="relative z-10">
-          {/* Neon Header */}
-          <div className="absolute -top-18 left-1/2 transform -translate-x-1/2 text-lg sm:text-3xl font-bold bg-primary px-4 py-2 rounded-t-lg "
-            style={{
-              // textShadow: "0 0 10px rgba(0, 191, 255, 1), 0 0 20px rgba(0, 191, 255, 0.6)",
-              zIndex: 20,
-            }}
+          <div
+            className="absolute -top-18 left-1/2 transform -translate-x-1/2 text-lg sm:text-3xl font-bold bg-primary px-4 py-2 rounded-t-lg "
           >
             Daily Quests
           </div>
 
-          {/* Generate Button */}
           <div className="text-center my-4">
             <span
-              onClick={() => {  if(challenges.length===0) generateChallenges(userId,"daily")}}
+              onClick={() => {
+                if (safeChallenges.length === 0)
+                  generateChallenges(userId, "daily");
+              }}
               className="text-sm border rounded-md p-1 hover:bg-muted hover:scale-105 transition text-white cursor-pointer"
-              style={{ textShadow: "0 0 5px rgba(0, 191, 255, 0.8)" }}
             >
               New Quests
             </span>
           </div>
 
-          {loading && <p className="text-center text-muted-foreground">Loading...</p>}
+          {loading && (
+            <p className="text-center text-muted-foreground">Loading...</p>
+          )}
 
           <ul className="space-y-4 mt-4">
-            { safeChallenges.map((c, i) => {
-              const isCompleted = c.completed || false;
-              return (
-                <li
-                  key={i}
-                  className="flex flex-col border-2 border-primary rounded-md px-4 py-3 bg-muted transition hover:bg-muted/80"
-                  style={{
-                    boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)",
-                  }}
-                >
-                  <div className="sm:flex items-start justify-between">
-                    <div
-                      className="sm:text-lg font-medium text-white"
-                      style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}
-                    >
-                      {c.title}
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-2 sm:mt-0">
-                      <button
-                        onClick={() =>
-                          setOpenDescIndex(openDescIndex === i ? null : i)
-                        }
-                        className="text-sm text-blue-300 hover:underline"
-                        style={{
-                          textShadow: "0 0 3px rgba(0, 191, 255, 0.6)",
-                        }}
-                      >
-                        {openDescIndex === i ? "Hide" : "Details"}
-                      </button>
-
-                      <select
-                        value={isCompleted ? "Completed" : "Pending"}
-                        onChange={async (e) => {
-                          if (e.target.value === "Completed" && !isCompleted) {
-                            await completeChallenge({
-                              userId,
-                              category: c.metricCategory,
-                             challengeIndex:i
-                            });
-
-                            await fetchChallenges(userId, "daily");
-                          }
-                        }}
-                        className="bg-background text-white border border-primary bg-base-300 rounded-md p-1"
-                        disabled={isCompleted}
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Completed">Completed</option>
-                      </select>
-                    </div>
+            {safeChallenges.map((c, i) => (
+              <li
+                key={i}
+                className="flex flex-col border-2 border-primary rounded-md px-4 py-3 bg-muted transition hover:bg-muted/80"
+                style={{
+                  boxShadow: "inset 0 0 10px rgba(0, 191, 255, 0.3)",
+                }}
+              >
+                <div className="sm:flex items-start justify-between">
+                  <div
+                    className="sm:text-lg font-medium text-white"
+                    style={{ textShadow: "0 0 3px rgba(0, 191, 255, 0.8)" }}
+                  >
+                    {c.title}
                   </div>
 
-                  {openDescIndex === i && (
-                    <div className="text-sm text-muted-foreground mt-2 ml-7">
-                      <p>{c.description}</p>
-                      {c.resource?.url && (
-                        <a
-                          href={c.resource.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block mt-1 text-blue-400 underline"
-                          style={{
-                            textShadow: "0 0 2px rgba(0, 191, 255, 0.4)",
-                          }}
-                        >
-                          🔗 {c.resource.name}
-                        </a>
+                  <button
+                    onClick={() =>
+                      setOpenDescIndex(openDescIndex === i ? null : i)
+                    }
+                    className="text-sm text-blue-300 hover:underline"
+                  >
+                    {openDescIndex === i ? "Hide" : "Details"}
+                  </button>
+                </div>
+
+                {openDescIndex === i && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm text-gray-300 ml-1">
+                      {c.description}
+                    </p>
+
+                    {/* ✅ Text Summary Input */}
+                    <textarea
+                      placeholder="Write your solution summary..."
+                      value={formData[i]?.textSummary || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          [i]: {
+                            ...prev[i],
+                            textSummary: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full bg-base-300 border border-primary text-white rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+
+                    {/* ✅ Image Upload */}
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, i)}
+                        className="text-sm text-gray-300"
+                      />
+                      {formData[i]?.imagePreview && (
+                        <img
+                          src={formData[i].imagePreview}
+                          alt="preview"
+                          className="w-20 h-20 rounded-md object-cover border border-primary"
+                        />
                       )}
                     </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
 
-          {/* Optional rank footer */}
-          {/* <div className="text-center mt-6">
-            <p className="text-md font-semibold text-white">
-              🧬 Your Current Rank:{" "}
-              <span className="text-purple-600">{rank?.rank}</span>
-            </p>
-          </div> */}
+                    {/* ✅ Submit Button */}
+                    <button
+                      disabled={submitting || c.submitted}
+                      onClick={() => handleSubmit(i)}
+                      className={`mt-2 px-3 py-1 text-sm font-semibold rounded-md text-white transition ${
+                        submitting
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-primary hover:scale-105"
+                      }`}
+                    >
+                       {c.submitted ? "✅ Submitted" : submitting ? "Uploading..." : "Submit Solution 🚀"}
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </CardSpotlight>
     </div>
