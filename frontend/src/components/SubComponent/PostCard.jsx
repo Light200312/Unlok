@@ -23,18 +23,16 @@ const PostCard = ({ post }) => {
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [expandedChallenge, setExpandedChallenge] = useState(null); // 👁️ Enlarge proof view
+  const [expandedChallenge, setExpandedChallenge] = useState(null);
   const [verifying, setVerifying] = useState(false);
 
   const postComments = comments[post._id] || [];
 
-  // 🧠 Toggle Comments
   const handleToggleComments = async () => {
     if (!showComments) await fetchPostComments(post?._id);
     setShowComments(!showComments);
   };
 
-  // 💬 Add Comment
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
     await addComment(post._id, {
@@ -45,12 +43,10 @@ const PostCard = ({ post }) => {
     await fetchPostComments(post._id);
   };
 
-  // ❤️ Like/Unlike Post
   const handleLike = async () => {
     await toggleLike(post?._id, authUser?._id);
   };
 
-  // 🛡️ Verify challenge
   const handleVerify = async (index) => {
     if (verifying) return;
     setVerifying(true);
@@ -59,101 +55,103 @@ const PostCard = ({ post }) => {
   };
 
   return (
-    <div className="w-full sm:w-[450px] md:w-[500px] bg-black text-white rounded-2xl border border-neutral-800 overflow-hidden my-6 shadow-md relative">
+    <div
+      className="relative w-full max-w-2xl border-4 border-emerald-400 rounded-xl p-5 my-8
+      bg-[rgba(10,10,35,0.65)] backdrop-blur-md text-white shadow-[0_0_15px_rgba(0,255,150,0.4)]
+      transition-all duration-300 hover:shadow-[0_0_25px_rgba(0,255,180,0.8)]"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <img
             src={post.userId?.avatar || "/profile.png"}
             alt="user"
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 rounded-full border border-emerald-500"
           />
-          <span className="font-semibold text-sm">{post.userId?.username}</span>
+          <span className="font-semibold">{post.userId?.username}</span>
         </div>
-        <MoreHorizontal className="text-neutral-400 cursor-pointer" />
+        <MoreHorizontal className="text-gray-400 cursor-pointer hover:text-emerald-400" />
       </div>
 
-      {/* Challenges grid */}
-      <div className="grid grid-cols-2 gap-1">
+      {/* Caption */}
+      {post.caption && (
+        <p className="mb-3 text-sm text-gray-300 border-l-2 border-emerald-400 pl-3 italic">
+          {post.caption}
+        </p>
+      )}
+
+      {/* Challenges */}
+      <ul className="space-y-3">
         {post.challenges.map((ch, i) => (
-          <div
+          <li
             key={i}
-            className="relative group cursor-pointer overflow-hidden border border-neutral-800"
             onClick={() => setExpandedChallenge({ ...ch, index: i })}
+            className="flex justify-between items-center px-4 py-3 border-2 border-emerald-400 rounded-lg 
+            cursor-pointer bg-black/40 hover:bg-emerald-900/20 
+            transition-all duration-300 hover:shadow-[0_0_12px_rgba(0,255,180,0.5)]"
           >
-            <img
-              src={ch.proofImage || "/noImage.jpg"}
-              alt={ch.title}
-              className="object-cover w-full h-40 group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-xs p-2">
-              <b>{ch.title}</b>
-              <p className="text-neutral-400 truncate">
-                {ch.description || "No summary"}
-              </p>
-            </div>
-          </div>
+            <span className="font-medium">{ch.title}</span>
+            <button className="text-sm text-emerald-400 hover:text-white transition">
+              Details
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Actions */}
-      <div className="flex justify-between px-4 py-3">
-        <div className="flex gap-5 items-center">
+      {/* Actions (Glow Box) */}
+      <div
+        className="mt-5 border-2 border-emerald-500 rounded-lg p-3 flex justify-between items-center
+        transition-all duration-300 hover:shadow-[0_0_15px_rgba(0,255,150,0.7)]"
+      >
+        <div className="flex gap-6 items-center">
           <Heart
-            className={`cursor-pointer ${
+            className={`cursor-pointer transition ${
               post.likes?.includes(authUser?._id)
-                ? "text-red-500 fill-red-500"
-                : "text-neutral-300"
+                ? "text-emerald-400 fill-emerald-400 scale-110"
+                : "text-gray-400 hover:text-emerald-300"
             }`}
             onClick={handleLike}
           />
           <MessageCircle
             onClick={handleToggleComments}
-            className="hover:text-neutral-300 cursor-pointer"
+            className="cursor-pointer text-gray-400 hover:text-emerald-300"
           />
-          <Send className="hover:text-neutral-300 cursor-pointer" />
+          <Send className="cursor-pointer text-gray-400 hover:text-emerald-300" />
         </div>
-        <Bookmark className="hover:text-neutral-300 cursor-pointer" />
+        <Bookmark className="cursor-pointer text-gray-400 hover:text-emerald-300" />
       </div>
 
       {/* Like / comment counts */}
-      <div className="px-4 text-sm font-semibold flex justify-between">
+      <div className="text-sm font-semibold flex justify-between mt-2 text-emerald-300">
         <span>{post.likes?.length || 0} likes</span>
         <span>{postComments.length || 0} comments</span>
       </div>
 
-      {/* Caption */}
-      <div className="px-4 pb-3 text-sm">
-        <span className="font-semibold">{post.userId?.username} </span>
-        {post.caption || ""}
-      </div>
-
       {/* Comments Section */}
       {showComments && (
-        <div className="px-4 pb-4 text-sm animate-fadeIn">
+        <div className="mt-4 border-t border-emerald-500 pt-3 text-sm">
           {postComments.length === 0 ? (
-            <p className="text-neutral-500">No comments yet</p>
+            <p className="text-gray-400">No comments yet</p>
           ) : (
             postComments.map((c) => (
               <div key={c._id} className="mb-2">
-                <span className="font-semibold">{c.username}: </span>
+                <span className="font-semibold text-emerald-300">{c.username}: </span>
                 {c.text}
               </div>
             ))
           )}
-
-          {/* Add new comment input */}
-          <div className="mt-3 border-t border-neutral-800 pt-2 flex items-center gap-2">
+          {/* Add comment */}
+          <div className="mt-2 flex items-center gap-2">
             <input
               type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Add a comment..."
-              className="bg-transparent border-none outline-none flex-1 text-sm placeholder-neutral-500"
+              placeholder="Write a comment..."
+              className="bg-transparent border border-emerald-500 rounded-md px-2 py-1 flex-1 text-white focus:outline-none text-sm"
             />
             <button
               onClick={handleAddComment}
-              className="text-emerald-500 font-semibold text-sm hover:text-emerald-400"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm px-3 py-1 rounded-md transition"
             >
               Post
             </button>
@@ -161,48 +159,72 @@ const PostCard = ({ post }) => {
         </div>
       )}
 
-      {/* Expanded Proof Modal */}
-      {expandedChallenge && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-neutral-900 rounded-2xl p-5 max-w-lg w-full relative">
-            <button
-              className="absolute top-3 right-3 text-neutral-400 hover:text-white"
-              onClick={() => setExpandedChallenge(null)}
-            >
-              <X />
-            </button>
+{expandedChallenge && (
+  <div
+    className="sticky top-12  z-[9999] flex items-center justify-center 
+               bg-black/80 backdrop-blur-md animate-fadeIn"
+  >
+    <div
+      className="relative bg-[#0b0b20] border border-emerald-500 rounded-2xl 
+                 shadow-[0_0_40px_rgba(0,255,180,0.7)] p-6 w-[90%] sm:w-[700px] 
+                 max-h-[90vh] overflow-y-auto text-white"
+    >
+      {/* Close button */}
+      <button
+        className="absolute top-3 right-3 text-gray-400 hover:text-white transition"
+        onClick={() => setExpandedChallenge(null)}
+      >
+        <X size={22} />
+      </button>
 
-            <img
-              src={expandedChallenge.proofImage || "/noimg.svg"}
-              alt={expandedChallenge.title}
-              className="w-full h-64 object-cover rounded-lg mb-4"
-            />
-
-            <h2 className="text-lg font-extralight">{expandedChallenge.description}</h2>
-            <p className="text-sm text-neutral-400 mb-3">
-              {expandedChallenge.proofText}
-            </p>
-
-            <div className="flex justify-between items-center">
-              <p className="text-sm">
-                ✅ {expandedChallenge.verifyCount || 0}/45 verified
-              </p>
-              <button
-                onClick={() => handleVerify(expandedChallenge.index)}
-                disabled={verifying}
-                className={`px-3 py-1 rounded-md text-sm ${
-                  verifying
-                    ? "bg-neutral-700 text-neutral-400"
-                    : "bg-emerald-600 hover:bg-emerald-500 text-white"
-                }`}
-              >
-                <ShieldCheck className="inline mr-1 w-4 h-4" />
-                {verifying ? "Verifying..." : "Verify"}
-              </button>
-            </div>
-          </div>
+      {/* Image */}
+      {expandedChallenge.proofImage && (
+        <div className="flex justify-center mb-4">
+          <img
+            src={expandedChallenge.proofImage}
+            alt={expandedChallenge.title}
+            className="w-full max-h-[60vh] object-contain rounded-lg border border-emerald-600"
+          />
         </div>
       )}
+
+      {/* Title */}
+      <h2 className="text-xl font-semibold text-emerald-300 mb-2 text-center">
+        {expandedChallenge.title}
+      </h2>
+
+      {/* Description */}
+      <p className="text-sm text-gray-300 leading-relaxed mb-4 text-center">
+        {expandedChallenge.description ||
+          expandedChallenge.proofText ||
+          "No description available for this challenge."}
+      </p>
+
+      {/* Verify Section */}
+      <div className="flex justify-between items-center mt-3">
+        <p className="text-sm text-emerald-400">
+          ✅ {expandedChallenge.verifyCount || 0}/45 verified
+        </p>
+        <button
+          onClick={() => handleVerify(expandedChallenge.index)}
+          disabled={verifying}
+          className={`px-4 py-1.5 rounded-md text-sm flex items-center gap-1
+            ${
+              verifying
+                ? "bg-neutral-700 text-neutral-400"
+                : "bg-emerald-600 hover:bg-emerald-500 text-white"
+            }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          {verifying ? "Verifying..." : "Verify"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 };

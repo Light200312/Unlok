@@ -1,31 +1,12 @@
+"use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useChatStore } from "../store/Chatstore";
 import { UserAuth } from "../store/userAuthStore";
-import { Link } from "react-router-dom";
 import { usePostStore } from "../store/PostStore";
 import PostCard from "../components/SubComponent/PostCard";
-import {
-  Home,
-  Search,
-  Compass,
-  Clapperboard,
-  OctagonAlert,
-  Heart,
-  Crown,
-  MessageCircle,
-  Telescope,
-  Send,
-  Bookmark,
-  MoreHorizontal,
-  SquarePlus,
-  User,
-  Sword,
-  Swords,
-  Trophy,
-} from "lucide-react";
+import { MessageCircle, Send } from "lucide-react";
 
 const GlobalChat = () => {
-  const [QuestOpen, setQuestOpen] = useState(false);
   const { authUser } = UserAuth();
   const {
     globalMessages,
@@ -36,39 +17,15 @@ const GlobalChat = () => {
     unsubscribeFromGlobal,
     sendGlobalMessage,
   } = useChatStore();
-const {
-  fetchAllPosts,
-  fetchUserPostsByStatus,
-  completedPosts,
-  posts,
-  loading,
-  fetchLatestPost,
-  currentPage,
-  totalPages,
-} = usePostStore();
 
-  function NavItem({ icon, label, badge, PageLink }) {
-    return (
-      <Link
-        to={PageLink}
-        className="relative flex items-center gap-4 px-4 py-2 hover:bg-neutral-800 rounded-xl cursor-pointer transition-all w-fit sm:w-full"
-      >
-        <div className="relative">
-          {icon}
-          {badge && (
-            <span className="absolute -top-1 -right-2 bg-red-500 text-xs font-bold rounded-full px-1.5">
-              {badge}
-            </span>
-          )}
-        </div>
-        <span className="hidden sm:inline">{label}</span>
-      </Link>
-    );
-  }
+  const {
+    fetchLatestPost,
+    completedPosts,
+    loading,
+    currentPage,
+    totalPages,
+  } = usePostStore();
 
-  // -----------------------------
-  // Chat controls (untouched)
-  // -----------------------------
   const [messageData, setMessageData] = useState({
     text: "",
     image: "",
@@ -76,27 +33,51 @@ const {
   });
 
   const messagesEndRef = useRef(null);
+  const mainRef = useRef(null);
+  const scrollTimeout = useRef(null);
 
+  // ⚡ Auto-scroll messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [globalMessages]);
 
+  // ⚡ Fetch chat & posts
   useEffect(() => {
     if (authUser?._id) {
       getUsers(authUser._id);
       getGlobalMessage();
       subscribeToGlobal();
     }
+    fetchLatestPost(1);
     return () => unsubscribeFromGlobal();
   }, [authUser?._id]);
+
+  // ⚡ Infinite scroll for posts
+  const handleScroll = (e) => {
+    if (scrollTimeout.current) return;
+    scrollTimeout.current = setTimeout(() => {
+      const bottom =
+        e.target.scrollHeight - e.target.scrollTop <=
+        e.target.clientHeight + 100;
+      if (bottom && !loading && currentPage < totalPages) {
+        fetchLatestPost(currentPage + 1);
+      }
+      scrollTimeout.current = null;
+    }, 300);
+  };
+
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (mainEl) mainEl.addEventListener("scroll", handleScroll);
+    return () => mainEl && mainEl.removeEventListener("scroll", handleScroll);
+  }, [loading, currentPage, totalPages]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = () =>
       setMessageData((prev) => ({ ...prev, image: reader.result }));
-    };
     reader.readAsDataURL(file);
   };
 
@@ -106,150 +87,91 @@ const {
     sendGlobalMessage(messageData);
     setMessageData({ text: "", image: "", userId: authUser._id });
   };
-useEffect(() => {
-  fetchLatestPost(1);
-}, []);
-const scrollTimeout = useRef(null);
-const handleScroll = (e) => {
-  if (scrollTimeout.current) return;
-  scrollTimeout.current = setTimeout(() => {
-    const bottom =
-      e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 100;
-    if (bottom && !loading && currentPage < totalPages) {
-      fetchLatestPost(currentPage + 1);
-    }
-    scrollTimeout.current = null;
-  }, 300);
-};
 
-
-// attach scroll listener to main feed
-const mainRef = useRef(null);
-useEffect(() => {
-  const mainEl = mainRef.current;
-  if (mainEl) mainEl.addEventListener("scroll", handleScroll);
-  return () => mainEl && mainEl.removeEventListener("scroll", handleScroll);
-}, [loading, currentPage, totalPages]);
-
-  // -----------------------------
-  // Layout
-  // -----------------------------
   return (
-    <div className="flex w-full bg-black text-white min-h-screen">
-      {/* Left Sidebar */}
-      <aside className="h-screen w-16 sm:w-56 bg-black flex flex-col items-center sm:items-start py-6 fixed border-r border-neutral-800">
-        <div className="mt-10"></div>
-        <nav className="flex flex-col p-1 gap-4 w-full">
-          <NavItem PageLink="/globalChat" icon={<Home />} label="Home" />
-          <NavItem PageLink="/" icon={<Telescope />} label="Search" />
-          <NavItem icon={<Compass />} label="Explore" />
-          <div onClick={() => setQuestOpen(!QuestOpen)}>
-            {" "}
-            <NavItem icon={<Swords />} label="Quests" />
-            {QuestOpen && (
-              <div className="ml-20   bg-[#1e1e1e] p-2 rounded ">
-                <ul className="flex flex-col gap-1 text-sm">
-                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
-                    <Link to="/dailychellenge">Daily Quests</Link>
-                  </li>
-                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
-                    <Link to="/weeklychallenge">Weekly Quests</Link>
-                  </li>
-                  <li className="hover:bg-[#2e2e2e] p-1 rounded">
-                    <Link to="/monthlychallenge">Monthly Quests</Link>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
+    <div
+      data-theme="forest"
+      className="min-h-screen w-full flex bg-[#020617] text-white overflow-hidden relative"
+    >
+      {/* 🔮 Background glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-black to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.05),transparent_70%)] animate-pulse" />
 
-          <NavItem
-            icon={<Send />}
-            PageLink={"/buddyChat"}
-            label="Messages"
-            badge="4"
-          />
-          <NavItem icon={<OctagonAlert />} label="Notifications" />
-          <NavItem
-            icon={<Crown />}
-            PageLink={"/globalRanking"}
-            label="Rankings"
-          />
-          <NavItem
-            icon={<Trophy />}
-            PageLink={"/statsAndRanking"}
-            label="User Stats"
-          />
-        </nav>
-      </aside>
+      {/* 🌌 Left Side – Community Feed */}
+      <main
+        ref={mainRef}
+        className="flex-1  overflow-y-auto px-4 sm:px-8 py-10 backdrop-blur-lg bg-black/30 shadow-[0_0_20px_rgba(0,255,255,0.1)] relative z-10"
+      >
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-center mb-8 text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.6)]">
+          
+          </h1>
 
-      {/* Feed (center) */}
-     {/* Feed (center) */}
-<main
-  ref={mainRef}
-  className="flex-1 sm:ml-56 flex flex-col items-center pt-10 pb-20 overflow-y-auto"
->
-  {loading && currentPage === 1 ? (
-    <div className="text-neutral-500 mt-10">Loading posts...</div>
-  ) : completedPosts.length === 0 ? (
-    <div className="text-neutral-500 mt-10">No live posts yet</div>
-  ) : (
-    completedPosts
-      .filter((p) => p.live === true)
-      .map((post) => <PostCard key={post._id} post={post} />)
-  )}
+          {loading && currentPage === 1 ? (
+            <p className="text-center text-neutral-500">Loading posts...</p>
+          ) : completedPosts.length === 0 ? (
+            <p className="text-center text-neutral-500">No live posts yet</p>
+          ) : (
+            completedPosts
+              .filter((p) => p.live)
+              .map((post) => <PostCard key={post._id} post={post} />)
+          )}
 
-  {/* Loader indicator for next page */}
-  {loading && currentPage > 1 && (
-    <div className="text-neutral-500 text-sm mt-4">Loading more posts...</div>
-  )}
-</main>
+          {loading && currentPage > 1 && (
+            <p className="text-center text-sm text-neutral-500 mt-3">
+              Loading more posts...
+            </p>
+          )}
+        </div>
+      </main>
 
-
-      {/* Right Side Global Chat */}
-      <div className="hidden sticky -top-0 right-0 xl:flex flex-col w-[350px] border-l border-neutral-800 h-screen bg-black">
+      {/* 💬 Right Side – Global Chat */}
+      <aside className="hidden xl:flex flex-col w-[370px] border-l border-cyan-700/40 bg-black/30 backdrop-blur-lg relative z-10 shadow-[0_0_25px_rgba(0,255,255,0.15)]">
         {/* Header */}
-        <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Messages</h2>
-          <MessageCircle className="text-neutral-400" />
+        <div className="p-4 border-b border-cyan-600/40 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-cyan-300">Global Chat</h2>
+          <MessageCircle className="text-cyan-400" />
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-black">
-          {(!globalMessages || globalMessages.length === 0) && (
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin scrollbar-thumb-cyan-700/50 scrollbar-track-black">
+          {!globalMessages?.length ? (
             <div className="text-center text-neutral-500">
               No messages yet. Be the first!
             </div>
-          )}
-
-          {!isMessagesLoading &&
-            globalMessages?.map((m, i) => {
+          ) : (
+            globalMessages.map((m, i) => {
               const isMine = m.senderId?._id === authUser?._id;
               return (
                 <div
-                  key={m?._id || i}
+                  key={m._id || i}
                   className={`flex flex-col ${
                     isMine ? "items-end" : "items-start"
                   }`}
                 >
                   {!isMine && (
-                    <span className="text-xs text-neutral-500 mb-1">
+                    <span className="text-xs text-cyan-400 mb-1 font-medium">
                       {m.senderId?.username || "Anonymous"}
                     </span>
                   )}
                   <div
-                    className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
+                    className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
                       isMine
-                        ? "bg-emerald-600 text-white rounded-br-none"
-                        : "bg-neutral-800 text-white rounded-bl-none"
+                        ? "bg-cyan-600/40 border border-cyan-500/50"
+                        : "bg-neutral-800/60 border border-cyan-700/30"
                     }`}
+                    style={{
+                      boxShadow: isMine
+                        ? "0 0 10px rgba(0,255,255,0.3)"
+                        : "0 0 5px rgba(0,255,255,0.2)",
+                    }}
                   >
-                    {m?.text && <p>{m.text}</p>}
-                    {m?.image && (
+                    {m.text && <p>{m.text}</p>}
+                    {m.image && (
                       <img
                         src={m.image}
-                        alt="sent-img"
-                        className="mt-2 max-h-48 rounded-lg object-cover"
+                        alt="sent"
+                        className="mt-2 max-h-48 rounded-md border border-cyan-700/40"
                       />
                     )}
                   </div>
@@ -261,16 +183,17 @@ useEffect(() => {
                   </span>
                 </div>
               );
-            })}
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Bar */}
         <form
-          className="p-4 border-t border-neutral-800 flex items-center w-full gap-2"
           onSubmit={handleSend}
+          className="p-4 border-t border-cyan-700/40 flex items-center gap-2 bg-black/30"
         >
-          <label className="cursor-pointer text-neutral-400 hover:text-white transition">
+          <label className="cursor-pointer text-cyan-400 hover:text-cyan-300 transition">
             📷
             <input
               type="file"
@@ -290,30 +213,30 @@ useEffect(() => {
               })
             }
             type="text"
-            placeholder="Send a message..."
-            className="flex-1 bg-neutral-900 border border-neutral-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            placeholder="Type your message..."
+            className="flex-1 bg-black/40 border border-cyan-700/50 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-cyan-800"
           />
 
           <button
             type="submit"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-full text-sm transition"
+            className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full text-sm shadow-[0_0_8px_rgba(0,255,255,0.4)]"
           >
-            Send
+            <Send size={16} />
           </button>
         </form>
 
         {/* Image Preview */}
         {messageData.image && (
-          <div className="border-t border-neutral-800 p-3 bg-neutral-900">
-            <p className="mb-2 text-sm text-neutral-400">Image Preview:</p>
+          <div className="border-t border-cyan-700/30 p-3 bg-black/40">
+            <p className="text-sm text-cyan-400 mb-2">Image Preview:</p>
             <img
               src={messageData.image}
               alt="preview"
-              className="max-h-48 rounded-lg object-cover"
+              className="max-h-48 rounded-lg object-cover border border-cyan-700/40"
             />
           </div>
         )}
-      </div>
+      </aside>
     </div>
   );
 };
