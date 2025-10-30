@@ -1,22 +1,35 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
+
+const notificationSchema = new mongoose.Schema({
+  notificationId: { type: String, default: uuidv4 },
+  type: { type: String, enum: ["friend", "clan", "quest"], required: true },
+  direction: { type: String, enum: ["sent", "received"], required: true },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  message: { type: String },
+  isAccepted: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
 
 const userSchema = new mongoose.Schema(
   {
-
     username: { type: String, required: true, unique: true },
     email: { type: String },
-    communityPoints: { type: Number, default: 0 },
-verifiedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
-clan: { type: mongoose.Schema.Types.ObjectId, ref: "Clan", default: null },
-clanRole: { type: String, enum: ["leader", "co-leader", "member", "none"], default: "none" },
-
-
     password: { type: String, required: true },
-    profilePic: {
-      type: String,
-      default: "",
-    },
+    profilePic: { type: String, default: "" },
+    rank: { type: String },
+    points: { type: String },
+    titles: [{ type: String }],
+    badges: [{ type: String }],
+
+    communityPoints: { type: Number, default: 0 },
+    verifiedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+
+    clan: { type: mongoose.Schema.Types.ObjectId, ref: "Clan", default: null },
+    clanRole: { type: String, enum: ["leader", "co-leader", "member", "none"], default: "none" },
+
     matrices: [{ type: mongoose.Schema.Types.ObjectId, ref: "Matrix" }],
     friendList: [
       {
@@ -25,22 +38,20 @@ clanRole: { type: String, enum: ["leader", "co-leader", "member", "none"], defau
         rank: { type: String },
       },
     ],
-     requestsNotifications: [
+
+    Followers: [
       {
-        notificationId:{type:String},
-        notificationType:{type:String,enum:["received","sent"],required:true},
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         username: { type: String, required: true },
         rank: { type: String },
-        requestRegarding: { type: String },
-        isAccepted:{type:Boolean}
       },
     ],
-    //user rank and titles
-    rank: { type: String },
-    points: { type: String },
-    titles: [{ type: String }],
-    badges: [{ type: String }],
+
+    requestsNotifications: [notificationSchema],
+
+    questSynced: { type: Boolean, default: false },
+    questSyncedWith: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    questSyncedDuration: { type: Date },
   },
   { timestamps: true }
 );
@@ -52,7 +63,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// Check password match
+// Compare password
 userSchema.methods.matchPassword = function (password) {
   return bcrypt.compare(password, this.password);
 };

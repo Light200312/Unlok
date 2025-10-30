@@ -4,9 +4,8 @@ import { toast } from "react-hot-toast";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { persist } from "zustand/middleware";
-// import {userAuth} from ""
-
 import { url, url2, url1 } from "../URL";
+
 const BASE_URL = import.meta.env.MODE === "development" ? url1 : url2;
 
 export const UserAuth = create(
@@ -15,66 +14,74 @@ export const UserAuth = create(
       authUser: null,
       isSigningUp: false,
       isLoggingIn: false,
-    
       ranking: null,
       socket: null,
       foundUsers: null,
-      notifications:null,
+
+      // ✅ changed from single `notifications:null` to structured notifications
+      notifications: { received: [], sent: [] },
+
+      /** 🔍 Search for users by username or ID */
       searchUser: async (userData) => {
-        // { neededUsername, neededUserID }
         try {
           const res = await axios.post(`${url}/user/FindFriend`, userData);
           set({ foundUsers: res.data });
           toast.success("Found users");
-          console.log(res.data)
+          console.log("🔍 Found Users:", res.data);
         } catch (error) {
           console.error(error);
-          toast.error("Failed!")
+          toast.error("Failed!");
         }
       },
-      makeFriendReq:async(userData)=>{
-        try {
-          const res=await axios.post(`${url}/user/addFriendRequest`,userData)
-          toast.success("Request Sent Successfully!")
-        } catch (error) {
-          toast.error("Failed!")
 
-          
-        }
-      },
-      fetchAllNotifications:async(userId)=>{
+      /** 🤝 Send a friend request */
+      makeFriendReq: async (userData) => {
         try {
-             const res=await axios.post(`${url}/user/fetchNotification`,{userId})
-             set({notifications:res.data})
-             console.log(res.data)
-          // toast.success("Notification loaded")
-          
+          const res = await axios.post(`${url}/user/addFriendRequest`, userData);
+          toast.success("Request Sent Successfully!");
+          console.log("✅ Friend Request Sent:", res.data);
         } catch (error) {
           console.error(error);
-          toast.error("Failed!")
+          toast.error("Failed!");
         }
-
       },
-       acceptRequest:async(userData)=>{
-        //  { userId, notificationId }
+
+      /** 🔔 Fetch all notifications */
+      fetchAllNotifications: async (userId) => {
         try {
-             const res=await axios.post(`${url}/user/acceptRequest`,userData)
-            
-          toast.success("Request Sent Successfully!")
-          
+          const res = await axios.post(`${url}/user/fetchNotification`, { userId });
+
+          // ✅ updated to match new controller response structure
+          set({ notifications: res.data });
+          console.log("📨 Notifications:", res.data);
         } catch (error) {
           console.error(error);
-          toast.error("Failed!")
+          toast.error("Failed!");
         }
-
       },
 
+      /** ✅ Accept a friend request */
+      acceptRequest: async (userData) => {
+        try {
+          const res = await axios.post(`${url}/user/acceptRequest`, userData);
+          toast.success("Friend request accepted!");
+          console.log("✅ Friend Request Accepted:", res.data);
+
+          // 🆕 refresh notifications immediately
+          await get().fetchAllNotifications(userData.userId);
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed!");
+        }
+      },
+
+      /** 🧾 Sign up new user */
       signup: async (data) => {
         set({ isSigningUp: true });
         try {
           const res = await axios.post(`${url}/user/register`, data);
           set({ authUser: res.data });
-          console.log(res.data);
+          console.log("🆕 Signup:", res.data);
 
           get().connectSocket();
           get().switchStorageKey(res.data._id);
@@ -87,17 +94,16 @@ export const UserAuth = create(
         }
       },
 
+      /** 🔐 Login existing user */
       login: async (data) => {
         set({ isLoggingIn: true });
         try {
           const res = await axios.post(`${url}/user/login`, data);
-          console.log(res.data);
           set({ authUser: res.data });
+          console.log("🔐 Login:", res.data);
+
           get().connectSocket();
           get().switchStorageKey(res.data._id);
-          // set({ Rank: res.data.rank });
-          // set({ titles: res.data?.titles });
-          // set({ badges: res.data.badges });
           toast.success("Logged in successfully");
         } catch (error) {
           console.error("Login error:", error?.response?.data || error);
@@ -107,28 +113,32 @@ export const UserAuth = create(
         }
       },
 
+      /** 🚪 Logout */
       logout: async () => {
         try {
           get().disConnectSocket();
-          // await axios.post("http://localhost:5000/api/user/logout");
           set({ authUser: null });
           set({ isLoggingIn: false });
           localStorage.removeItem(get().storageKey);
-
           toast.success("Logged out successfully");
         } catch (error) {
-          toast.error(error.response.data.message);
+          toast.error(error.response?.data?.message || "Logout failed");
         }
       },
+
+      /** 🌍 Fetch Global Ranking */
       getGlobalRanking: async () => {
         try {
           const res = await axios(`${url}/user/get-global-ranking`);
           set({ ranking: res.data });
-          //  toast.success("Global Rank Fetched Successfully")
+          console.log("🏆 Global Ranking:", res.data);
         } catch (error) {
-          toast.error("Error:Global Ranking fetched failed.");
+          console.error(error);
+          toast.error("Error: Global Ranking fetch failed.");
         }
       },
+
+      /** 🔌 Connect user socket */
       connectSocket: async () => {
         const { authUser } = get();
         if (!authUser || get().socket?.connected) return;
@@ -141,12 +151,28 @@ export const UserAuth = create(
         });
         socket.connect();
 
-        set({ socket: socket });
+        set({ socket });
 
+        // ✅ listen for online users
         socket.on("getOnlineUsers", (userIds) => {
           set({ onlineUsers: userIds });
         });
+
+        // 🆕 live notification event (if backend emits "newNotification")
+        socket.on("newNotification", (notif) => {
+          set((state) => ({
+            notifications: {
+              ...state.notifications,
+              received: [notif, ...state.notifications.received],
+            },
+          }));
+          toast("📩 New notification received");
+        });
+
+        console.log("🟢 Socket connected");
       },
+
+      /** 🔌 Disconnect socket */
       disConnectSocket: async () => {
         const socket = get().socket;
         if (socket && socket.connected) {
@@ -156,28 +182,33 @@ export const UserAuth = create(
           set({ socket: null });
         }
       },
+
+      /** 🗝️ Switch storage key dynamically per user */
       switchStorageKey: (userId) => {
         const newKey = `auth-store-${userId}`;
         set({ storageKey: newKey });
       },
 
+      /** 🌐 Check backend connection (debug helper) */
       checkconnection: async () => {
         try {
           const res = await axiosInstance.get("/");
-          toast(res + "from backend");
+          toast.success("Backend connected: " + res.status);
         } catch (error) {
-          console.log("error in connection");
+          console.log("Error in connection");
         }
       },
     }),
     {
-      name: "auth-store", // default name, will be replaced dynamically
+      name: "auth-store", // default storage name
       getStorage: () => localStorage,
       onRehydrateStorage: () => (state) => {
         if (state?.authUser) {
           state.connectSocket();
         }
       },
+
+      // prevent socket from being persisted
       partialize: (state) => {
         const { socket, ...rest } = state;
         return rest;

@@ -24,39 +24,40 @@ const SidebarLayout = ({ setsidebarOpen, sidebarOpen: open }) => {
   const toggleSidebar = () => setsidebarOpen(!open);
 
   // 🔹 Reusable NavItem with hover tooltip
-  const NavItem = ({ icon, label, PageLink, badge, onClick }) => (
-    <div className="relative group flex justify-center">
-      {/* Tooltip */}
-      {!open && (
-        <div
-          className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
-          bg-neutral-800 text-white text-xs px-2 py-1 rounded-md opacity-0 
-          group-hover:opacity-100 group-hover:translate-x-1 transition-all 
-          whitespace-nowrap z-[9999]"
-        >
-          {label}
-        </div>
-      )}
-
-      <Link
-        to={PageLink || "#"}
-        onClick={onClick}
-        className={`relative flex items-center gap-4 px-3 py-2 rounded-xl 
-        hover:bg-neutral-800 transition-all cursor-pointer 
-        ${open ? "justify-start w-full" : "justify-center w-full"}`}
+const NavItem = ({ icon, label, PageLink, badge, onClick }) => (
+  <Link
+    to={PageLink || "#"}
+    onClick={onClick}
+    className={`relative flex items-center gap-4 px-3 py-2 rounded-xl 
+    hover:bg-neutral-800 transition-all cursor-pointer 
+    ${open ? "justify-start w-full" : "justify-center w-full"} group`}
+  >
+    {/* Tooltip */}
+    {!open && (
+      <div
+        className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 
+        bg-neutral-800 text-white text-xs px-2 py-1 rounded-md opacity-0 
+        group-hover:opacity-100 group-hover:translate-x-1 transition-all 
+        whitespace-nowrap z-[9999]"
       >
-        <div className="relative">
-          {icon}
-          {badge && (
-            <span className="absolute -top-1 -right-2 bg-red-500 text-xs font-bold rounded-full px-1.5">
-              {badge}
-            </span>
-          )}
-        </div>
-        {open && <span className="whitespace-nowrap">{label}</span>}
-      </Link>
+        {label}
+      </div>
+    )}
+
+    {/* Icon */}
+    <div className="relative flex items-center justify-center">
+      {icon}
+      {badge && (
+        <span className="absolute -top-1 -right-2 bg-red-500 text-xs font-bold rounded-full px-1.5">
+          {badge}
+        </span>
+      )}
     </div>
-  );
+
+    {open && <span className="whitespace-nowrap">{label}</span>}
+  </Link>
+);
+
 
   return (
     <div className="relative min-h-screen bg-[#0e0e0f] text-gray-100 flex">
@@ -87,61 +88,53 @@ const SidebarLayout = ({ setsidebarOpen, sidebarOpen: open }) => {
             <NavItem PageLink="/explore" icon={<Compass />} label="Explore" />
 
             {/* Quests Popup */}
-            <div
-              className="relative group flex justify-center"
-              onMouseEnter={() => setQuestPopup(true)}
-              onMouseLeave={() => setQuestPopup(false)}
-            >
-              {!open && (
-                <div
-                  className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-neutral-800 text-white text-xs 
-                  px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 
-                  group-hover:translate-x-1 transition-all whitespace-nowrap z-[9999]"
-                >
-                  Quests
-                </div>
-              )}
+          {/* Quests Popup (fixed hover area) */}
+<div className="relative">
+  <div
+    onMouseEnter={() => setQuestPopup(true)}
+    onMouseLeave={() => setQuestPopup(false)}
+    className="group"
+  >
+    <NavItem
+      icon={<Swords />}
+      label="Quests"
+      onClick={() => setQuestPopup(!questPopup)}
+    />
 
-              <div className="w-full">
-                <NavItem
-                  icon={<Swords />}
-                  label="Quests"
-                  onClick={() => setQuestPopup(!questPopup)}
-                />
-              </div>
+    {/* Popup Menu */}
+    {questPopup && (
+      <div
+        className={`absolute ${
+          open ? "left-full ml-3 top-0" : "left-full ml-0 top-1/2 -translate-y-1/2"
+        } bg-[#1a1a1a] border border-emerald-500 shadow-[0_0_15px_rgba(0,255,150,0.4)]
+        rounded-md w-44 py-2 text-sm text-gray-300 animate-fadeIn z-[99999]`}
+      >
+        <Link
+          to="/dailychellenge"
+          className="block px-4 py-2 hover:bg-emerald-600/20 transition"
+          onClick={() => setQuestPopup(false)}
+        >
+          🗓️ Daily Quests
+        </Link>
+        <Link
+          to="/weeklychallenge"
+          className="block px-4 py-2 hover:bg-emerald-600/20 transition"
+          onClick={() => setQuestPopup(false)}
+        >
+          📅 Weekly Quests
+        </Link>
+        <Link
+          to="/monthlychallenge"
+          className="block px-4 py-2 hover:bg-emerald-600/20 transition"
+          onClick={() => setQuestPopup(false)}
+        >
+          🌕 Monthly Quests
+        </Link>
+      </div>
+    )}
+  </div>
+</div>
 
-              {/* Popup Menu */}
-              {questPopup && (
-                <div
-                  className={`absolute ${
-                    open ? "left-full ml-3 top-0" : "left-full ml-0 top-1/2 -translate-y-1/2"
-                  } bg-[#1a1a1a] border border-emerald-500 shadow-[0_0_15px_rgba(0,255,150,0.4)]
-                  rounded-md w-44 py-2 text-sm text-gray-300 animate-fadeIn z-[99999]`}
-                >
-                  <Link
-                    to="/dailychellenge"
-                    className="block px-4 py-2 hover:bg-emerald-600/20 transition"
-                    onClick={() => setQuestPopup(false)}
-                  >
-                    🗓️ Daily Quests
-                  </Link>
-                  <Link
-                    to="/weeklychallenge"
-                    className="block px-4 py-2 hover:bg-emerald-600/20 transition"
-                    onClick={() => setQuestPopup(false)}
-                  >
-                    📅 Weekly Quests
-                  </Link>
-                  <Link
-                    to="/monthlychallenge"
-                    className="block px-4 py-2 hover:bg-emerald-600/20 transition"
-                    onClick={() => setQuestPopup(false)}
-                  >
-                    🌕 Monthly Quests
-                  </Link>
-                </div>
-              )}
-            </div>
 
             <NavItem icon={<Send />} PageLink="/buddyChat" label="Messages" />
             <NavItem icon={<Scissors />} PageLink="/postEditor" label="Drafts" />
@@ -156,7 +149,7 @@ const SidebarLayout = ({ setsidebarOpen, sidebarOpen: open }) => {
 
         {/* --- Bottom Section --- */}
         <div className="flex flex-col border-t border-neutral-800 py-3 space-y-1">
-          <NavItem icon={<Bell />} label="Notifications" PageLink="/notifications" />
+          <NavItem icon={<Bell />} label="Notifications" PageLink="/notification" />
           <NavItem icon={<HelpCircle />} label="Support" PageLink="/support" />
           <NavItem icon={<Settings />} label="Settings" PageLink="/settings" />
 

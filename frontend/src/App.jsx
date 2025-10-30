@@ -15,10 +15,10 @@ const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
 import PostEditor from "./pages/PostsEditor";
 // import Navbar from "./components/SubComponent/Navbar";
 import Navbar from "./components/SubComponent/SimpleNavbar";
-
+import Notification from "./pages/Notification"
 const CanvasRevealEffectDemo = lazy(() => import("./components/CanvarCover"));
 import { matrixAuthStore } from "./store/matrixStore";
-import RivalBuddy from "./pages/RivalBuddy";
+import RivalBuddy from "./pages/RivalBuddy";import ClanHub from "./pages/ClanHub";
 import SidebarLayout from "./components/Sidebar";
 import Carousel from "./components/QuestSlider";
 const GlobalChat = lazy(() => import("./pages/GlobalChat"));
@@ -92,6 +92,18 @@ const App = () => {
                 path="/buddyChat"
                 element={
                   authUser?.username ? <RivalBuddy /> : <Navigate to="/login" />
+                }
+              />
+               <Route
+                path="/notification"
+                element={
+                  authUser?.username ? <Notification /> : <Navigate to="/login" />
+                }
+              />
+              <Route
+                path="/ClanHub"
+                element={
+                  authUser?.username ? <ClanHub /> : <Navigate to="/login" />
                 }
               />
               <Route

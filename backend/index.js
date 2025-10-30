@@ -11,7 +11,8 @@ import axios from "axios";
 import { app, server} from "./config/socket.js"
 import bodyParser from "body-parser";
 import ChallengeBatchRoutes from "./routes/ChallengeBatchRoutes.js"
-import messageRoutes from "./routes/MessageRoutes.js"
+import messageRoutes from "./routes/MessageRoutes.js";
+import clanRoutes from "./routes/clanRoutes.js"
 dotenv.config();
 connectDB();
 
@@ -43,7 +44,7 @@ app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.get("/" ,(req,res)=>{
     res.send("hello buddy")
 })
-
+app.use("/api/clan", clanRoutes);
 app.use('/api/matrices', matrixRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes);

@@ -20,6 +20,18 @@ const messageSchema = new mongoose.Schema(
       default: null, // e.g., "global", "room123"
       index: true,
     },
+     clanId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Clan",
+      default: null,
+      index: true, // for fast group fetch
+    },
+    system: {
+  type: Boolean,
+  default: false
+},
+
+
 
     text: {
       type: String,
