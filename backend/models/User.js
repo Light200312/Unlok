@@ -2,16 +2,27 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
+
+
 const notificationSchema = new mongoose.Schema({
   notificationId: { type: String, default: uuidv4 },
   type: { type: String, enum: ["friend", "clan", "quest"], required: true },
   direction: { type: String, enum: ["sent", "received"], required: true },
   sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  senderName: { type: String },
+  receiverName: { type: String },
   message: { type: String },
   isAccepted: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
-});
+  createdAt: { type: Date, default: Date.now },
+  relatedId: { type: mongoose.Schema.Types.ObjectId, refPath: "relatedModel" },
+  relatedModel: { type: String, enum: ["Clan", "Quest", "User", "Post"], default: "User" },
+  status: {
+    type: String,
+    enum: ["pending", "accepted", "rejected"],
+    default: "pending",
+  },
+}, { timestamps: true });
 
 const userSchema = new mongoose.Schema(
   {
@@ -46,6 +57,9 @@ const userSchema = new mongoose.Schema(
         rank: { type: String },
       },
     ],
+    relatedId: { type: mongoose.Schema.Types.ObjectId, refPath: "relatedModel" },
+relatedModel: { type: String, enum: ["Clan", "Quest", "User", "Post"], default: "User" },
+
 
     requestsNotifications: [notificationSchema],
 

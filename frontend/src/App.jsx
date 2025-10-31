@@ -21,6 +21,7 @@ import { matrixAuthStore } from "./store/matrixStore";
 import RivalBuddy from "./pages/RivalBuddy";import ClanHub from "./pages/ClanHub";
 import SidebarLayout from "./components/Sidebar";
 import Carousel from "./components/QuestSlider";
+import CreateClan from "./pages/CreateClan";
 const GlobalChat = lazy(() => import("./pages/GlobalChat"));
 const App = () => {
   const { authUser } = UserAuth();
@@ -104,6 +105,12 @@ const App = () => {
                 path="/ClanHub"
                 element={
                   authUser?.username ? <ClanHub /> : <Navigate to="/login" />
+                }
+              />
+                <Route
+                path="/create-clan"
+                element={
+                  authUser?.username ? <CreateClan /> : <Navigate to="/login" />
                 }
               />
               <Route

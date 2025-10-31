@@ -35,6 +35,37 @@ export const getMessages = async (req, res) => {
   }
 };
 
+
+export const getFriendsForSidebar = async (req, res) => {
+  try {
+    const { id: userId } = req.params;
+
+    const user = await User.findById(userId).populate({
+      path: "friendList.userId",
+      select: "username profilePic rank points email createdAt"
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // extract populated friend data
+    const friends = user.friendList.map(f => ({
+      _id: f.userId?._id,
+      username: f.userId?.username,
+      profilePic: f.userId?.profilePic,
+      rank: f.userId?.rank,
+      points: f.userId?.points,
+      email: f.userId?.email,
+      createdAt: f.userId?.createdAt,
+    }));
+
+    res.status(200).json(friends);
+  } catch (error) {
+    console.error("Error in getFriendsForSidebar:", error.message);
+    res.status(500).json({ error: "Failed to fetch friends list" });
+  }
+};
 export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;

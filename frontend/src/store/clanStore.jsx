@@ -9,12 +9,14 @@ export const useClanStore = create(
   persist(
     (set, get) => ({
       clan: null,
+      clanInfo: null,
       clanMessages: [],
+      foundClans: [],
+      clanRequests: [],
       clansLoading: false,
-      messagesLoading: false,clanInfo: null,
-foundClans: [],
+      messagesLoading: false,
 
-      // ✅ Create Clan
+      /** ✅ Create Clan */
       createClan: async (clanData) => {
         set({ clansLoading: true });
         try {
@@ -27,21 +29,60 @@ foundClans: [],
           set({ clansLoading: false });
         }
       },
-
-      // ✅ Invite to Clan
-      inviteToClan: async (inviteData) => {
+      getClanRequests: async (data) => {
         try {
-          const res = await axios.post(`${url}/clan/invite`, inviteData);
-          toast.success(res.data.message || "Invitation sent!");
+          const res = await axios.post(`${url}/clan/requests`, data);
+          set({clanRequests:res.data.joinRequests }) ;
         } catch (err) {
-          toast.error(err.response?.data?.error || "Failed to send invite");
+          toast.error(
+            err.response?.data?.error || "Failed to fetch clan requests"
+          );
+          return [];
         }
       },
 
-      // ✅ Accept Clan Invite
+      /** ✅ Search Clans */
+      searchClans: async (searchTerm) => {
+        set({ clansLoading: true });
+        try {
+          const res = await axios.post(`${url}/clan/search`, {
+            query: searchTerm,
+          });
+          set({ foundClans: res.data });
+        } catch (err) {
+          toast.error(err.response?.data?.error || "Failed to search clans");
+        } finally {
+          set({ clansLoading: false });
+        }
+      },
+
+      /** ✅ Get Clan Info */
+      getClanInfo: async (clanId) => {
+        set({ clansLoading: true });
+        try {
+          const res = await axios.get(`${url}/clan/info/${clanId}`);
+          set({ clanInfo: res.data });
+        } catch (err) {
+          toast.error(err.response?.data?.error || "Failed to fetch clan info");
+        } finally {
+          set({ clansLoading: false });
+        }
+      },
+
+      /** ✅ Request to Join Clan */
+      requestJoinClan: async (joinData) => {
+        try {
+          const res = await axios.post(`${url}/clan/requestJoin`, joinData);
+          toast.success(res.data.message || "Join request sent!");
+        } catch (err) {
+          toast.error(err.response?.data?.error || "Failed to request join");
+        }
+      },
+
+      /** ✅ Accept Clan Invite */
       acceptClanInvite: async (inviteData) => {
         try {
-          const res = await axios.post(`${url}/clan/accept`, inviteData);
+          const res = await axios.post(`${url}/clan/acceptInvite`, inviteData);
           set({ clan: res.data.clan });
           toast.success("Joined clan successfully!");
         } catch (err) {
@@ -49,7 +90,31 @@ foundClans: [],
         }
       },
 
-      // ✅ Leave Clan
+      /** ✅ Accept Join Request (leader approves user) */
+      acceptJoinRequest: async (data) => {
+        try {
+          const res = await axios.post(`${url}/clan/acceptJoin`, data);
+          toast.success(res.data.message || "Join request accepted");
+        } catch (err) {
+          toast.error(
+            err.response?.data?.error || "Failed to accept join request"
+          );
+        }
+      },
+
+      /** ❌ Reject Join Request (leader rejects user) */
+      rejectJoinRequest: async (data) => {
+        try {
+          const res = await axios.post(`${url}/clan/rejectJoin`, data);
+          toast.success(res.data.message || "Join request rejected");
+        } catch (err) {
+          toast.error(
+            err.response?.data?.error || "Failed to reject join request"
+          );
+        }
+      },
+
+      /** ✅ Leave Clan */
       leaveClan: async (userId) => {
         try {
           const res = await axios.post(`${url}/clan/leave`, { userId });
@@ -60,7 +125,7 @@ foundClans: [],
         }
       },
 
-      // ✅ Kick Member
+      /** ✅ Kick Member */
       kickClanMember: async (kickData) => {
         try {
           const res = await axios.post(`${url}/clan/kick`, kickData);
@@ -70,7 +135,7 @@ foundClans: [],
         }
       },
 
-      // ✅ Promote/Demote Member
+      /** ✅ Promote/Demote Member */
       updateClanRole: async (roleData) => {
         try {
           const res = await axios.post(`${url}/clan/updateRole`, roleData);
@@ -80,11 +145,11 @@ foundClans: [],
         }
       },
 
-      // ✅ Get Clan Messages
-      getClanMessages: async (clanId) => {
+      /** ✅ Get Clan Messages */
+      getClanMessages: async (chatRoomId) => {
         set({ messagesLoading: true });
         try {
-          const res = await axios.get(`${url}/clan/chat/${clanId}`);
+          const res = await axios.get(`${url}/clan/chat/${chatRoomId}`);
           set({ clanMessages: res.data });
         } catch (err) {
           toast.error(err.response?.data?.error || "Failed to load messages");
@@ -93,70 +158,35 @@ foundClans: [],
         }
       },
 
-      // ✅ Send Clan Message
-      sendClanMessage: async (clanId, messageData) => {
+      /** ✅ Send Clan Message */
+      sendClanMessage: async (chatRoomId, messageData) => {
         try {
-          const res = await axios.post(`${url}/clan/chat/${clanId}`, messageData);
+          const res = await axios.post(
+            `${url}/clan/chat/${chatRoomId}`,
+            messageData
+          );
           set((state) => ({
             clanMessages: [...state.clanMessages, res.data],
           }));
         } catch (err) {
           toast.error(err.response?.data?.error || "Failed to send message");
         }
-      },// ✅ Search Clans
-searchClans: async (searchTerm) => {
-  set({ clansLoading: true });
-  try {
-    const res = await axios.post(`${url}/clan/search`, { searchTerm });
-    set({ foundClans: res.data });
-    toast.success("Clans loaded");
-  } catch (err) {
-    toast.error(err.response?.data?.error || "Failed to search clans");
-  } finally {
-    set({ clansLoading: false });
-  }
-},
-
-// ✅ Get Clan Info
-getClanInfo: async (clanId) => {
-  set({ clansLoading: true });
-  try {
-    const res = await axios.get(`${url}/clan/info/${clanId}`);
-    set({ clanInfo: res.data });
-  } catch (err) {
-    toast.error(err.response?.data?.error || "Failed to fetch clan info");
-  } finally {
-    set({ clansLoading: false });
-  }
-},
-
-// ✅ Request to Join Clan
-requestJoinClan: async (joinData) => {
-  try {
-    const res = await axios.post(`${url}/clan/requestJoin`, joinData);
-    toast.success(res.data.message || "Join request sent!");
-  } catch (err) {
-    toast.error(err.response?.data?.error || "Failed to request join");
-  }
-},
-
-
-      // ✅ Subscribe to Clan Chat
-      subscribeToClanChat: () => {
-        const socket = UserAuth?.getState().socket;
-        if (!socket) return;
-
-        socket.off("newClanMessage");
-        socket.on("newClanMessage", (msg) => {
-          set((state) => ({
-            clanMessages: [...state.clanMessages, msg],
-          }));
-        });
       },
 
-      // ✅ Unsubscribe
-      unsubscribeFromClanChat: () => {
-        const socket = UserAuth?.getState().socket;
+      /** ✅ Socket.io Clan Chat Subscriptions */
+      subscribeToClanChat: (roomId) => {
+        const socket = UserAuth?.getState()?.socket;
+        if (!socket) return;
+        socket.emit("joinClanRoom", roomId);
+        socket.off("newClanMessage");
+        socket.on("newClanMessage", (msg) =>
+          set((state) => ({ clanMessages: [...state.clanMessages, msg] }))
+        );
+      },
+
+      unsubscribeFromClanChat: (roomId) => {
+        const socket = UserAuth?.getState()?.socket;
+        socket?.emit("leaveClanRoom", roomId);
         socket?.off("newClanMessage");
       },
     }),

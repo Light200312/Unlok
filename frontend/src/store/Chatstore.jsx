@@ -10,6 +10,7 @@ export const useChatStore = create(
   messages: [],
   globalMessages: [],  
   users: [],
+  friends:[],
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
@@ -21,6 +22,17 @@ export const useChatStore = create(
       set({ users: res.data });
     } catch (error) {
       toast.error(error.response.data.message);
+    } finally {
+      set({ isUsersLoading: false });
+    }
+  },
+  getFriends: async (userId) => {
+    set({ isUsersLoading: true });
+    try {
+      const res = await axios.get(`${url}/messages/friends/${userId}`);
+      set({ friends: res.data }); // friends users state for friend list
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to fetch friends");
     } finally {
       set({ isUsersLoading: false });
     }

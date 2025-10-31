@@ -1,3 +1,4 @@
+// routes/userRoutes.js
 import express from "express";
 import {
   registerUser,
@@ -7,6 +8,7 @@ import {
   AddToFriendList,
   FindUsers,
   acceptFriendRequest,
+  rejectFriendRequest, // ✅ new
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -17,6 +19,7 @@ router.get("/get-global-ranking", findRankingOrder);
 router.post("/FindFriend", FindUsers);
 router.post("/addFriendRequest", AddToFriendList);
 router.post("/acceptRequest", acceptFriendRequest);
+router.post("/rejectRequest", rejectFriendRequest); // ✅ new
 router.post("/fetchNotification", fetchNotifications);
 
 export default router;

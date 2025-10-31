@@ -3,17 +3,16 @@ import User from "../models/User.js";
 import Message from "../models/message.model.js";
 import { v4 as uuidv4 } from "uuid";
 import { io } from "../config/socket.js";
-
-/** 🏰 Create a Clan */
+import {mongoose} from "mongoose"
+/* 🏰 Create a Clan */
 export const createClan = async (req, res) => {
   try {
     const { name, description, bannerImage, leaderId } = req.body;
+
     const leader = await User.findById(leaderId);
     if (!leader) return res.status(404).json({ error: "Leader not found" });
-
-    // Ensure leader not already in a clan
     if (leader.clan)
-      return res.status(400).json({ error: "User already belongs to a clan" });
+      return res.status(400).json({ error: "User already in a clan" });
 
     const clan = await Clan.create({
       name,
@@ -24,19 +23,18 @@ export const createClan = async (req, res) => {
       chatRoomId: uuidv4(),
     });
 
-    // Update leader’s profile
     leader.clan = clan._id;
     leader.clanRole = "leader";
     await leader.save();
 
     res.status(201).json({ message: "Clan created successfully", clan });
   } catch (err) {
-    console.error("Error creating clan:", err.message);
+    console.error("❌ Error creating clan:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 📩 Invite a user to a Clan */
+/* 📩 Invite a user to a Clan */
 export const inviteToClan = async (req, res) => {
   try {
     const { clanId, senderId, targetUserId } = req.body;
@@ -52,44 +50,41 @@ export const inviteToClan = async (req, res) => {
       return res.status(403).json({ error: "No permission to invite users" });
 
     if (target.clan)
-      return res.status(400).json({ error: "User already in another clan" });
+      return res.status(400).json({ error: "User already in a clan" });
 
-    // Create notification
-    const notifId = uuidv4();
     target.requestsNotifications.push({
-      notificationId: notifId,
+      notificationId: uuidv4(),
       userId: sender._id,
       username: sender.username,
       rank: sender.rank,
-      requestRegarding: "Clan Join Request",
-      isAccepted: false,
+      requestRegarding: `Invitation to join clan ${clan.name}`,
       notificationType: "received",
+      isAccepted: false,
     });
 
     await target.save();
 
     res.status(200).json({ message: "Clan invite sent successfully" });
   } catch (err) {
-    console.error("Error inviting user:", err.message);
+    console.error("❌ Error inviting user:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** ✅ Accept Clan Invite */
+/* ✅ Accept Clan Invite */
 export const acceptClanInvite = async (req, res) => {
   try {
     const { userId, clanId, notificationId } = req.body;
 
     const user = await User.findById(userId);
     const clan = await Clan.findById(clanId);
-    if (!user || !clan) return res.status(404).json({ error: "User or clan not found" });
+    if (!user || !clan)
+      return res.status(404).json({ error: "User or clan not found" });
 
-    // Remove the join request notification
     user.requestsNotifications = user.requestsNotifications.filter(
       (n) => n.notificationId !== notificationId
     );
 
-    // Add to clan
     user.clan = clan._id;
     user.clanRole = "member";
     await user.save();
@@ -97,7 +92,6 @@ export const acceptClanInvite = async (req, res) => {
     clan.members.push(user._id);
     await clan.save();
 
-    // 🟢 Send system join message
     const joinMsg = await Message.create({
       senderId: user._id,
       room: clan.chatRoomId,
@@ -109,37 +103,120 @@ export const acceptClanInvite = async (req, res) => {
 
     res.status(200).json({ message: "Joined clan successfully", clan });
   } catch (err) {
-    console.error("Error accepting clan invite:", err.message);
+    console.error("❌ Error accepting clan invite:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+/* ✅ Accept Clan Join Request */
+export const acceptClanJoinRequest = async (req, res) => {
+  try {
+    const { clanId, leaderId, userId } = req.body;
+
+    const clan = await Clan.findById(clanId);
+    const leader = await User.findById(leaderId);
+    const user = await User.findById(userId);
+
+    if (!clan || !leader || !user)
+      return res.status(404).json({ error: "Invalid clan or users" });
+
+    if (leader._id.toString() !== clan.leader.toString())
+      return res.status(403).json({ error: "Only leader can accept requests" });
+
+    // ✅ Add user to clan
+    if (!clan.members.includes(user._id)) {
+      clan.members.push(user._id);
+      clan.joinRequests = clan.joinRequests.filter(
+        (id) => id.toString() !== userId
+      );
+      await clan.save();
+    }
+
+    user.clan = clan._id;
+    user.clanRole = "member";
+    await user.save();
+
+    // ✅ Update notifications
+    leader.requestsNotifications.forEach((n) => {
+      if (n.sender?.toString() === userId && n.relatedId?.toString() === clanId) {
+        n.status = "accepted";
+      }
+    });
+
+    user.requestsNotifications.forEach((n) => {
+      if (n.receiver?.toString() === leaderId && n.relatedId?.toString() === clanId) {
+        n.status = "accepted";
+      }
+    });
+
+    await leader.save();
+    await user.save();
+
+    // ✅ System message in clan chat
+    const joinMsg = await Message.create({
+      senderId: user._id,
+      room: clan.chatRoomId,
+      text: `🎉 ${user.username} has joined the clan!`,
+      system: true,
+    });
+
+    io.to(clan.chatRoomId).emit("newClanMessage", joinMsg);
+    io.to(user._id.toString()).emit("notificationUpdate", {
+      message: `Your join request for ${clan.name} was accepted.`,
+    });
+
+    res.status(200).json({ message: "Join request accepted successfully" });
+  } catch (err) {
+    console.error("❌ Error accepting clan join request:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/**
- * 🚪 Leave Clan — user voluntarily leaves clan
- * Sends system message: “User has left the clan.”
- */
+export const getClanRequests = async (req, res) => {
+  try {
+    const { clanId, userId } = req.body;
+    if (!clanId || !userId)
+      return res.status(400).json({ error: "Clan ID and User ID are required" });
+
+    const clan = await Clan.findById(clanId)
+      .populate("joinRequests", "username profilePic rank")
+      .populate("leader", "username");
+
+    if (!clan) return res.status(404).json({ error: "Clan not found" });
+
+    // ✅ Only leader or co-leader can view requests
+    const isAuthorized =
+      clan.leader._id.toString() === userId ||
+      clan.coLeaders.some((co) => co.toString() === userId);
+
+    if (!isAuthorized)
+      return res.status(403).json({ error: "Not authorized to view requests" });
+
+    res.status(200).json({ joinRequests: clan.joinRequests });
+  } catch (err) {
+    console.error("❌ Error fetching clan requests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+/* 🚪 Leave Clan */
 export const leaveClan = async (req, res) => {
   try {
     const { userId } = req.body;
 
     const user = await User.findById(userId);
     if (!user || !user.clan)
-      return res.status(400).json({ error: "User is not in any clan" });
+      return res.status(400).json({ error: "User not in a clan" });
 
     const clan = await Clan.findById(user.clan);
     if (!clan) return res.status(404).json({ error: "Clan not found" });
 
-    // Remove user from clan member lists
     clan.members = clan.members.filter((m) => m.toString() !== userId);
     clan.coLeaders = clan.coLeaders.filter((m) => m.toString() !== userId);
     await clan.save();
 
-    // Reset user clan data
     user.clan = null;
     user.clanRole = "none";
     await user.save();
 
-    // 🟡 Send system leave message
     const leaveMsg = await Message.create({
       senderId: user._id,
       room: clan.chatRoomId,
@@ -151,13 +228,12 @@ export const leaveClan = async (req, res) => {
 
     res.status(200).json({ message: "User left the clan successfully" });
   } catch (err) {
-    console.error("Error leaving clan:", err.message);
+    console.error("❌ Error leaving clan:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 🦶 Kick a member */
-/** 🚫 Kick a clan member (with system message) */
+/* 🚫 Kick Member */
 export const kickClanMember = async (req, res) => {
   try {
     const { clanId, memberId, adminId } = req.body;
@@ -172,17 +248,14 @@ export const kickClanMember = async (req, res) => {
     if (!["leader", "co-leader"].includes(admin.clanRole))
       return res.status(403).json({ error: "No permission" });
 
-    // Remove from members & coLeaders
     clan.members = clan.members.filter((m) => m.toString() !== memberId);
     clan.coLeaders = clan.coLeaders.filter((m) => m.toString() !== memberId);
     await clan.save();
 
-    // Update user record
     member.clan = null;
     member.clanRole = "none";
     await member.save();
 
-    // 🟠 System message: kicked
     const kickMsg = await Message.create({
       senderId: admin._id,
       room: clan.chatRoomId,
@@ -194,12 +267,12 @@ export const kickClanMember = async (req, res) => {
 
     res.status(200).json({ message: "Member kicked successfully" });
   } catch (err) {
-    console.error("Error kicking member:", err.message);
+    console.error("❌ Error kicking member:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** ⚙️ Promote or demote a member (with system message) */
+/* ⚙️ Update Role (Promote/Demote) */
 export const updateClanRole = async (req, res) => {
   try {
     const { clanId, adminId, memberId, newRole } = req.body;
@@ -214,11 +287,9 @@ export const updateClanRole = async (req, res) => {
     if (admin.clanRole !== "leader")
       return res.status(403).json({ error: "Only leader can promote/demote" });
 
-    // Update user role
     member.clanRole = newRole;
     await member.save();
 
-    // Update clan lists
     if (newRole === "co-leader" && !clan.coLeaders.includes(member._id)) {
       clan.coLeaders.push(member._id);
     } else if (newRole === "member") {
@@ -226,7 +297,6 @@ export const updateClanRole = async (req, res) => {
     }
     await clan.save();
 
-    // 🟢 System message: role change
     const roleAction =
       newRole === "co-leader"
         ? `⬆️ ${member.username} has been promoted to Co-Leader by ${admin.username}.`
@@ -243,65 +313,72 @@ export const updateClanRole = async (req, res) => {
 
     res.status(200).json({ message: `Updated ${member.username} to ${newRole}` });
   } catch (err) {
-    console.error("Error updating role:", err.message);
+    console.error("❌ Error updating clan role:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 💬 Fetch Clan Chat */
+/* 💬 Get Clan Messages (from room/chatRoomId) */
 export const getClanMessages = async (req, res) => {
   try {
-    const { clanId } = req.params;
-    const messages = await Message.find({ clanId })
+    const { chatRoomId } = req.params;
+    const messages = await Message.find({ room: chatRoomId })
       .sort({ createdAt: 1 })
       .populate("senderId", "username profilePic");
+
     res.status(200).json(messages);
   } catch (err) {
-    console.error("Error fetching clan messages:", err.message);
+    console.error("❌ Error fetching clan messages:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 📤 Send Clan Message */
+/* 📤 Send Clan Message */
 export const sendClanMessage = async (req, res) => {
   try {
-    const { clanId } = req.params;
+    const { chatRoomId } = req.params;
     const { userId, text, image } = req.body;
 
-    const msg = await Message.create({ senderId: userId, clanId, text, image });
+    const msg = await Message.create({ senderId: userId, room: chatRoomId, text, image });
     const populated = await msg.populate("senderId", "username profilePic");
 
-    io.to(clanId.toString()).emit("newClanMessage", populated);
+    io.to(clanId).emit("newClanMessage", populated);
+
     res.status(201).json(populated);
   } catch (err) {
-    console.error("Error sending clan message:", err.message);
+    console.error("❌ Error sending clan message:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-/** 🔍 Search Clans by name or ID */
+
+/* 🔍 Search Clans */
 export const searchClans = async (req, res) => {
   try {
     const { query } = req.body;
-    if (!query) return res.status(400).json({ error: "Search query required" });
+    if (!query) return res.status(400).json({ error: "Query required" });
 
-    const clans = await Clan.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { _id: query }
-      ],
-    })
+    const searchConditions = [
+      { name: { $regex: query, $options: "i" } },
+    ];
+
+    // ✅ Only add _id search if the query is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      searchConditions.push({ _id: query });
+    }
+
+    const clans = await Clan.find({ $or: searchConditions })
       .populate("leader", "username rank profilePic")
-      .populate("coLeaders", "username rank profilePic")
       .populate("members", "username rank profilePic");
 
     res.status(200).json(clans);
   } catch (err) {
-    console.error("Error searching clans:", err.message);
+    console.error("❌ Error searching clans:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 🧭 Get full clan info by ID */
+
+/* 🧭 Get Clan Info */
 export const getClanInfo = async (req, res) => {
   try {
     const { clanId } = req.params;
@@ -311,51 +388,125 @@ export const getClanInfo = async (req, res) => {
       .populate("members", "username rank profilePic");
 
     if (!clan) return res.status(404).json({ error: "Clan not found" });
-
     res.status(200).json(clan);
   } catch (err) {
-    console.error("Error getting clan info:", err.message);
+    console.error("❌ Error getting clan info:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/** 🙋‍♂️ Request to join a clan */
+/* 🙋‍♂️ Request to Join Clan */
 export const requestJoinClan = async (req, res) => {
   try {
     const { clanId, userId } = req.body;
 
+    // 🔍 Fetch user and clan
     const clan = await Clan.findById(clanId);
     const user = await User.findById(userId);
     if (!clan || !user)
       return res.status(404).json({ error: "Clan or user not found" });
 
+    // 🚫 Already in a clan?
     if (user.clan)
-      return res.status(400).json({ error: "You are already in a clan" });
+      return res.status(400).json({ error: "Already in a clan" });
 
-    // Avoid duplicates
+    // 🚫 Already requested?
     if (clan.joinRequests.includes(userId))
-      return res.status(400).json({ error: "Already requested" });
+      return res.status(400).json({ error: "Already requested to join" });
 
+    // ✅ Add join request to clan
     clan.joinRequests.push(userId);
     await clan.save();
 
-    // Optional: send notification to leader
-    const notifId = uuidv4();
+    // 🔹 Create Notification Objects
     const leader = await User.findById(clan.leader);
-    if (leader) {
-      leader.requestsNotifications.push({
-        notificationId: notifId,
-        userId: user._id,
-        username: user.username,
-        requestRegarding: `Join request for clan ${clan.name}`,
-        notificationType: "received",
-      });
-      await leader.save();
-    }
+    if (!leader)
+      return res.status(404).json({ error: "Clan leader not found" });
+
+    // ✅ Receiver (Leader)
+    const leaderNotification = {
+      notificationId: uuidv4(),
+      type: "clan",
+      direction: "received",
+      sender: user._id,
+      receiver: leader._id,
+      senderName: user.username,
+      receiverName: leader.username,
+      message: `${user.username} requested to join your clan "${clan.name}".`,
+      relatedId: clan._id,
+      relatedModel: "Clan",
+      status: "pending",
+    };
+
+    // ✅ Sender (User)
+    const userNotification = {
+      notificationId: uuidv4(),
+      type: "clan",
+      direction: "sent",
+      sender: user._id,
+      receiver: leader._id,
+      senderName: user.username,
+      receiverName: leader.username,
+      message: `You requested to join clan "${clan.name}".`,
+      relatedId: clan._id,
+      relatedModel: "Clan",
+      status: "pending",
+    };
+
+    // 📨 Push both sides
+    leader.requestsNotifications.push(leaderNotification);
+    user.requestsNotifications.push(userNotification);
+
+    await leader.save();
+    await user.save();
+
+    // (Optional) Real-time update to leader
+    io.to(leader._id.toString()).emit("newNotification", leaderNotification);
 
     res.status(200).json({ message: "Join request sent successfully" });
   } catch (err) {
-    console.error("Error requesting to join clan:", err.message);
+    console.error("❌ Error requesting join:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+export const rejectClanJoinRequest = async (req, res) => {
+  try {
+    const { clanId, leaderId, userId } = req.body;
+
+    const clan = await Clan.findById(clanId);
+    const leader = await User.findById(leaderId);
+    const user = await User.findById(userId);
+
+    if (!clan || !leader || !user)
+      return res.status(404).json({ error: "Invalid clan or users" });
+
+    clan.joinRequests = clan.joinRequests.filter(
+      (id) => id.toString() !== userId
+    );
+    await clan.save();
+
+    // Update notifications
+    leader.requestsNotifications.forEach((n) => {
+      if (n.sender?.toString() === userId && n.relatedId?.toString() === clanId) {
+        n.status = "rejected";
+      }
+    });
+    user.requestsNotifications.forEach((n) => {
+      if (n.receiver?.toString() === leaderId && n.relatedId?.toString() === clanId) {
+        n.status = "rejected";
+      }
+    });
+
+    await leader.save();
+    await user.save();
+
+    io.to(user._id.toString()).emit("notificationUpdate", {
+      message: `Your join request for ${clan.name} was rejected.`,
+    });
+
+    res.status(200).json({ message: "Join request rejected" });
+  } catch (err) {
+    console.error("❌ Error rejecting join request:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };

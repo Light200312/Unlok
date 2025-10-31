@@ -311,9 +311,29 @@ export const getSinglePost = async (req, res) => {
 export const getUserPostsByStatus = async (req, res) => {
   try {
     const { userId } = req.params;
-    const posts = await Post.find({ userId }, "-comments").sort({
-      createdAt: -1,
-    });
+
+    // Fetch posts for user
+    const posts = await Post.find({ userId }, "-comments")
+      .populate("userId", "username rank avatar")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Attach metric + submetric from ChallengeBatch
+    for (const post of posts) {
+      const batch = await ChallengeBatch.findById(post.batchId).lean();
+      if (batch) {
+        post.challenges = post.challenges.map((ch) => {
+          const ref = batch.challenges.find(
+            (bch) => bch._id.toString() === ch.challengeId.toString()
+          );
+          return {
+            ...ch,
+            metricCategory: ref?.metricCategory,
+            subMetric: ref?.subMetric,
+          };
+        });
+      }
+    }
 
     const draftPosts = posts.filter((p) => !p.live);
     const completedPosts = posts.filter((p) => p.live);
@@ -324,6 +344,7 @@ export const getUserPostsByStatus = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch posts by status" });
   }
 };
+
 // ✅ Fetch paginated live posts (10 at a time)
 export const getPaginatedLivePosts = async (req, res) => {
   try {

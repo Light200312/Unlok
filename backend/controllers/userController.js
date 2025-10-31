@@ -134,18 +134,58 @@ export const FindUsers = async (req, res) => {
 /** 👥 Send Friend Request */
 export const AddToFriendList = async (req, res) => {
   const { friendId, userId } = req.body;
+
   try {
+
+    if (!userId || !friendId)
+      return res.status(400).json({ error: "Missing userId or friendId" });
+
+    if (friendId === userId)
+      return res.status(400).json({ error: "You cannot add yourself" });
+console.log("DEBUG AddToFriendList:", { userId, friendId });
+    const sender = await User.findById(userId);
+    const receiver = await User.findById(friendId);
+    if (!sender || !receiver)
+      return res.status(404).json({ error: "User not found" });
+
+    // Prevent duplicate requests or existing friends
+    const alreadyFriends = sender.friendList?.some(
+      (f) => f.userId?.toString() === friendId
+    );
+    const alreadySent = sender.requestsNotifications?.some(
+      (n) =>
+        n.receiver?.toString() === friendId &&
+        n.type === "friend" &&
+        !n.isAccepted
+    );
+    const alreadyReceived = receiver.requestsNotifications?.some(
+      (n) =>
+        n.sender?.toString() === userId &&
+        n.type === "friend" &&
+        !n.isAccepted
+    );
+
+    if (alreadyFriends)
+      return res.status(400).json({ error: "Already friends" });
+    if (alreadySent || alreadyReceived)
+      return res.status(400).json({ error: "Request already sent" });
+
+    // ✅ Send Notification
     await sendNotification({
       senderId: userId,
       receiverId: friendId,
       type: "friend",
-      message: "sent you a friend request.",
+      message: `${sender.username} sent you a friend request.`,
     });
+
     res.status(200).json({ message: "Friend request sent" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error in AddToFriendList:", err);
+    res.status(500).json({ error: "Failed to send friend request" });
   }
 };
+
+//
 
 /** ✅ Accept Friend Request */
 export const acceptFriendRequest = async (req, res) => {
@@ -176,17 +216,53 @@ export const acceptFriendRequest = async (req, res) => {
   }
 };
 
+/** ❌ Reject Friend Request */
+export const rejectFriendRequest = async (req, res) => {
+  const { userId, notificationId } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const notif = user.requestsNotifications.find(
+      (n) => n.notificationId === notificationId
+    );
+    if (!notif) return res.status(404).json({ error: "Notification not found" });
+
+    // Remove from both sides
+    const sender = await User.findById(notif.sender);
+    if (sender) {
+      sender.requestsNotifications = sender.requestsNotifications.filter(
+        (n) => n.notificationId !== notificationId
+      );
+      await sender.save();
+    }
+
+    user.requestsNotifications = user.requestsNotifications.filter(
+      (n) => n.notificationId !== notificationId
+    );
+    await user.save();
+
+    res.status(200).json({ message: "Friend request rejected" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to reject friend request" });
+  }
+};
+
 /** 🔔 Fetch All Notifications */
 export const fetchNotifications = async (req, res) => {
   const { userId } = req.body;
   try {
-    const user = await User.findById(userId).populate("requestsNotifications.sender", "username profilePic");
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
-    res.status(200).json({
-      received: user.requestsNotifications.filter((n) => n.direction === "received"),
-      sent: user.requestsNotifications.filter((n) => n.direction === "sent"),
-    });
-  } catch {
+
+    const received = user.requestsNotifications.filter((n) => n.direction === "received");
+    const sent = user.requestsNotifications.filter((n) => n.direction === "sent");
+
+    res.status(200).json({ received, sent });
+  } catch (error) {
+    console.error("❌ Fetch notifications failed:", error);
     res.status(500).json({ error: "Failed to fetch notifications" });
   }
 };
+

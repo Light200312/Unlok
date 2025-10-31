@@ -2,39 +2,55 @@ import User from "../models/User.js";
 import { v4 as uuidv4 } from "uuid";
 
 /**
- * Sends a notification between two users
- * @param {Object} options
- * @param {String} options.senderId
- * @param {String} options.receiverId
- * @param {String} options.type - "friend" | "clan" | "quest"
- * @param {String} options.message
+ * Sends proper sender/receiver notifications
+ * with different messages for each direction.
  */
-export const sendNotification = async ({ senderId, receiverId, type, message }) => {
-  const sender = await User.findById(senderId);
-  const receiver = await User.findById(receiverId);
-  if (!sender || !receiver) throw new Error("Sender or receiver not found");
+export const sendNotification = async ({ senderId, receiverId, type }) => {
+  try {
+    if (!senderId || !receiverId || !type) {
+      throw new Error("Missing required fields: senderId, receiverId, or type");
+    }
 
-  const notifId = uuidv4();
+    const sender = await User.findById(senderId);
+    const receiver = await User.findById(receiverId);
 
-  const notif = {
-    notificationId: notifId,
-    type,
-    direction: "received",
-    sender: senderId,
-    receiver: receiverId,
-    message,
-  };
+    if (!sender || !receiver) {
+      throw new Error("Sender or receiver not found");
+    }
 
-  const sentNotif = {
-    ...notif,
-    direction: "sent",
-  };
+    const notifId = uuidv4();
 
-  receiver.requestsNotifications.push(notif);
-  sender.requestsNotifications.push(sentNotif);
+    // ✉️ Separate messages for sender and receiver
+    const receiverMsg = `${sender.username} sent you a ${type} request.`;
+    const senderMsg = `You sent a ${type} request to ${receiver.username}.`;
 
-  await receiver.save();
-  await sender.save();
+    const receivedNotif = {
+      notificationId: notifId,
+      type,
+      direction: "received",
+      sender: sender._id,
+      receiver: receiver._id,
+      senderName: sender.username,
+      receiverName: receiver.username,
+      message: receiverMsg,
+    };
 
-  return notifId;
+    const sentNotif = {
+      ...receivedNotif,
+      direction: "sent",
+      message: senderMsg,
+    };
+
+    receiver.requestsNotifications.push(receivedNotif);
+    sender.requestsNotifications.push(sentNotif);
+
+    await receiver.save();
+    await sender.save();
+
+    console.log("✅ Notification sent successfully:", notifId);
+    return notifId;
+  } catch (error) {
+    console.error("❌ sendNotification error:", error);
+    throw error;
+  }
 };

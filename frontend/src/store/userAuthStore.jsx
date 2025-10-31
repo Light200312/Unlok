@@ -21,45 +21,41 @@ export const UserAuth = create(
       // ✅ changed from single `notifications:null` to structured notifications
       notifications: { received: [], sent: [] },
 
-      /** 🔍 Search for users by username or ID */
+        /** 🔍 Search for users */
       searchUser: async (userData) => {
         try {
           const res = await axios.post(`${url}/user/FindFriend`, userData);
           set({ foundUsers: res.data });
-          toast.success("Found users");
-          console.log("🔍 Found Users:", res.data);
-        } catch (error) {
-          console.error(error);
-          toast.error("Failed!");
+          toast.success("User(s) found!");
+        } catch {
+          toast.error("User not found!");
         }
       },
 
       /** 🤝 Send a friend request */
+      /** 📩 Send Friend Request */
       makeFriendReq: async (userData) => {
         try {
           const res = await axios.post(`${url}/user/addFriendRequest`, userData);
-          toast.success("Request Sent Successfully!");
-          console.log("✅ Friend Request Sent:", res.data);
+          toast.success(res.data.message);
         } catch (error) {
-          console.error(error);
-          toast.error("Failed!");
+          const msg =
+            error?.response?.data?.error || "Failed to send friend request";
+          toast.error(msg);
         }
       },
 
+
       /** 🔔 Fetch all notifications */
+       /** 🔔 Fetch All Notifications */
       fetchAllNotifications: async (userId) => {
         try {
           const res = await axios.post(`${url}/user/fetchNotification`, { userId });
-
-          // ✅ updated to match new controller response structure
           set({ notifications: res.data });
-          console.log("📨 Notifications:", res.data);
-        } catch (error) {
-          console.error(error);
-          toast.error("Failed!");
+        } catch {
+          toast.error("Failed to load notifications");
         }
       },
-
       /** ✅ Accept a friend request */
       acceptRequest: async (userData) => {
         try {
@@ -72,6 +68,16 @@ export const UserAuth = create(
         } catch (error) {
           console.error(error);
           toast.error("Failed!");
+        }
+      },
+       /** ❌ Reject Request */
+      rejectRequest: async (data) => {
+        try {
+          const res = await axios.post(`${url}/user/rejectRequest`, data);
+          toast.success("Request rejected!");
+          await get().fetchAllNotifications(data.userId);
+        } catch {
+          toast.error("Failed to reject request");
         }
       },
 
