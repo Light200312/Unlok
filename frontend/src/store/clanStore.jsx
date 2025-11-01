@@ -61,7 +61,7 @@ export const useClanStore = create(
         set({ clansLoading: true });
         try {
           const res = await axios.get(`${url}/clan/info/${clanId}`);
-          set({ clan: res.data });
+          set({ clan: res.data });console.log("Clan Info:", clan);
         } catch (err) {
           toast.error(err.response?.data?.error || "Failed to fetch clan info");
         } finally {

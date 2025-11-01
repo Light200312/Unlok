@@ -9,6 +9,8 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const WeeklyChallenges = lazy(() => import("./pages/WeeklyChallenges"));
 const MonthlyChallenge = lazy(() => import("./pages/MonthlyChallenge"));
+const LandingPage = lazy(() => import("./pages/LandingPage"))
+
 
 const DailyChellenges = lazy(() => import("./pages/dailyChellenges"));
 const StatsAndRanking = lazy(() => import("./pages/StatsAndRanking"));
@@ -68,8 +70,9 @@ const App = () => {
               />
                   <Route
               path="/"
-              // element={authUser?.username ? <Home /> : <Navigate to="/login" />}
-              element={<Home />}
+              // element={authUser?.username ? <Home /> : <LandingPage />}
+              element={ <LandingPage />}
+              // element={<Home />}
             />
               <Route
                 path="/globalChat"

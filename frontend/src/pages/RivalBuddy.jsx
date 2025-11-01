@@ -171,13 +171,13 @@ const RivalBuddy = () => {
         {activeTab === "friends" && (
           <div className="flex-1 overflow-y-auto p-2">
             {friends?.map((u, i) => (
-              <div className=" flex gap-2"> 
+              <div className=" flex gap-2 py-2"> 
               <button
                 key={i}
                 onClick={() => setSelectedUser(u)}
-                className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all ${
+                className={`flex items-center gap-3 w-full px-3  py-2 bg-[#1f2630] rounded-md border border-gray-700 hover:bg-[#2a323f] transition-all ${
                   selectedUser?._id === u._id
-                    ? "bg-blue-700 text-white"
+                    ? "bg-gray-700 text-white"
                     : "hover:bg-[#1f2630] text-gray-300"
                 }`}
               >
@@ -188,7 +188,7 @@ const RivalBuddy = () => {
                 />
                 <p className="truncate">{u.username}</p>
 
-              </button>  <button className="p-1 px-2 m-1 bg-green-600 rounded-full" onClick={()=>syncChallenges(userId,u._id,7)}><Link size={15}/></button> </div>
+              </button>  <button className="p-1 px-2 m-1 border hover:bg-white hover:text-black rounded-full" onClick={()=>syncChallenges(userId,u._id,7)}><Link size={15}/></button> </div>
             ))}
           </div>
         )}
@@ -198,26 +198,45 @@ const RivalBuddy = () => {
           <div className="flex flex-col items-center justify-between flex-1 p-4">
             {clan ? (
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-white">
+                
+                <div>
+                  {" "}
+                 <li className="text-left mt-3">
+  <p className="font-semibold mb-2 text-sm text-gray-300">Members:</p>
+  <div className="space-y-2">
+    {clan?.members?.map((member) => (
+      <div
+        key={member._id}
+        className="flex items-center gap-3 p-2 bg-[#1f2630] rounded-md border border-gray-700 hover:bg-[#2a323f] transition-all"
+      >
+        <img
+          src={member.profilePic || "/profile.png"}
+          alt={member.username}
+          className="w-8 h-8 rounded-full object-cover"
+        />
+        <div>
+          <p className="text-white text-sm font-medium">
+            {member.username}
+          </p>
+          <p className="text-xs text-gray-400">
+            {member.rank || "Unranked"}
+          </p>
+        </div>
+        <Link className="ml-30 cursor-pointer" onClick={()=>syncChallenges(authUser._id,member._id,7)}/>
+      </div>
+    ))}
+  </div>
+</li>
+
+                </div>
+                <div className="mt-4">
+<h3 className="text-lg font-semibold text-white">
                   {clan.name}
                 </h3>
                 <p className="text-gray-400 text-sm mt-1">{clan.description}</p>
-                <button
-                  onClick={() => setShowClanChat(true)}
-                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded"
-                >
-                  Open Clan Chat
-                </button>
-                <div>
-                  {" "}
-                  <ul>
-                    <li>
-                      Members {clan.members.map((i) => {
-                        <div>{i.username}</div>;
-                      })}
-                    </li>
-                  </ul>
+                
                 </div>
+                
               </div>
             ) : (
               <>
