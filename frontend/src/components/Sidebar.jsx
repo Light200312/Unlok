@@ -84,8 +84,8 @@ const NavItem = ({ icon, label, PageLink, badge, onClick }) => (
           {/* --- Navigation --- */}
           <nav className="flex flex-col space-y-2">
             <NavItem PageLink="/globalChat" icon={<Home />} label="Home" />
-            <NavItem PageLink="/" icon={<Telescope />} label="Search" />
-            <NavItem PageLink="/explore" icon={<Compass />} label="Explore" />
+            {/* <NavItem PageLink="/" icon={<Telescope />} label="Search" /> */}
+            {/* <NavItem PageLink="/explore" icon={<Compass />} label="Explore" /> */}
 
             {/* Quests Popup */}
           {/* Quests Popup (fixed hover area) */}
@@ -149,9 +149,9 @@ const NavItem = ({ icon, label, PageLink, badge, onClick }) => (
 
         {/* --- Bottom Section --- */}
         <div className="flex flex-col border-t border-neutral-800 py-3 space-y-1">
-          <NavItem icon={<Bell />} label="Notifications" PageLink="/notification" />
-          <NavItem icon={<HelpCircle />} label="Support" PageLink="/support" />
-          <NavItem icon={<Settings />} label="Settings" PageLink="/settings" />
+          {/* <NavItem icon={<Bell />} label="Notifications" PageLink="/notification" /> */}
+          {/* <NavItem icon={<HelpCircle />} label="Support" PageLink="/support" /> */}
+          {/* <NavItem icon={<Settings />} label="Settings" PageLink="/settings" /> */}
 
           {/* Profile Card */}
           <div

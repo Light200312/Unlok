@@ -471,205 +471,310 @@ const RivalBuddy = () => {
       </main>
 
       {/* RIGHT SIDEBAR (Notifications, Search Users) */}
-      {activeTab === "friends" && (
-        <aside className="w-80 border-l border-gray-800 bg-[#161b22] p-5 space-y-6 hidden sm:block">
-          {/* Search Users */}
-          <div>
-            <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
-              <Search size={18} /> Find Users
-            </h4>
-            <div className="space-y-2">
-              {["neededUsername", "neededUserID"].map((field) => (
-                <input
-                  key={field}
-                  type="text"
-                  value={inputData[field]}
-                  name={field}
-                  placeholder={
-                    field === "neededUsername"
-                      ? "Search by username"
-                      : "Search by ID"
-                  }
-                  onChange={(e) =>
-                    setInputData({
-                      ...inputData,
-                      [e.target.name]: e.target.value,
-                    })
-                  }
-                  className="w-full rounded bg-[#1b1f24] border border-gray-700 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              ))}
-              <button
-                className="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                onClick={(e) => {
-                  e.preventDefault();
-                  searchUser(inputData);
-                }}
-              >
-                Search
-              </button>
-            </div>
-            <div>
+     {/* RIGHT SIDEBAR */}
+<aside className="w-80 border-l border-gray-800 bg-[#161b22] p-5 space-y-6 hidden sm:block">
+  {activeTab === "friends" ? (
+    <>
+      {/* 🔍 Search Users */}
+      <div>
+        <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
+          <Search size={18} /> Find Users
+        </h4>
+        <div className="space-y-2">
+          {["neededUsername", "neededUserID"].map((field) => (
+            <input
+              key={field}
+              type="text"
+              value={inputData[field]}
+              name={field}
+              placeholder={
+                field === "neededUsername"
+                  ? "Search by username"
+                  : "Search by ID"
+              }
+              onChange={(e) =>
+                setInputData({
+                  ...inputData,
+                  [e.target.name]: e.target.value,
+                })
+              }
+              className="w-full rounded bg-[#1b1f24] border border-gray-700 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          ))}
+          <button
+            className="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            onClick={(e) => {
+              e.preventDefault();
+              searchUser(inputData);
+            }}
+          >
+            Search
+          </button>
+        </div>
 
-            </div>
-            <div>
-              {foundUsers && foundUsers.map((u,i)=>(
-                 <div className="flex items-center justify-between p-3 bg-base-200/70 rounded-xl shadow-md hover:bg-base-300 transition-all mb-2 border border-base-300">
-      {/* 👤 Profile Info */}
-      <div className="flex items-center gap-3">
-        <img
-          src={u.profilePic || "/profile.png"}
-          alt={u.username}
-          className="w-10 h-10 rounded-full object-cover border border-base-300"
-        />
-        <div>
-          <h3 className="font-semibold text-base-content">{u.username}</h3>
-          <p className="text-sm text-base-content/70">
-            {u.rank || "Unranked"} • {u.clan || "Solo"} ({u.clanRole || "No role"})
-          </p>
+        {/* Search Results */}
+        <div className="mt-4 space-y-2">
+          {foundUsers?.length ? (
+            foundUsers.map((u) => (
+              <div
+                key={u._id}
+                className="flex items-center justify-between bg-[#1e242f] p-2 rounded-md border border-gray-700 hover:bg-[#232830] transition"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={u.profilePic || "/profile.png"}
+                    alt={u.username}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div>
+                    <p className="font-semibold text-white">{u.username}</p>
+                    <p className="text-xs text-gray-400">
+                      {u.rank || "Unranked"} • {u.clan || "Solo"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => makeFriendReq({ friendId: u._id, userId })}
+                  className="bg-blue-600 hover:bg-blue-700 text-xs px-3 py-1 rounded text-white"
+                >
+                  Add
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-500 text-center">
+              No users found.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* ➕ Add Friend Button */}
-      <button
-        onClick={() => makeFriendReq({ friendId: u._id, userId })}
-        className="btn btn-sm btn-primary text-white px-4"
-      >
-        Add Friend
-      </button>
-    </div>
-              ))}
-              
-            </div>
-          </div>
-
-          {/* Notifications */}
-          <div className="mt-auto pt-4 border-t border-gray-800">
-            <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
-              <Bell size={18} /> Notifications
-            </h4>
-            <div className="space-y-2">
-              {notifications?.received?.length ? (
-                notifications.received.map((n, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded bg-[#1b1f24] p-2 text-sm text-gray-200 hover:bg-[#232830]"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {n.senderName || n.sender?.username}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {n.type === "clan"
-                          ? `Clan: ${n.message}`
-                          : n.message || n.type}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          if (n.type === "clan" || n.relatedModel === "Clan") {
-                            // Clan join acceptance
-                            acceptClanInvite({
-                              userId,
-                              clanId: n.relatedId, // this is the clan ID
-                              notificationId: n.notificationId,
-                            });
-                          } else if (n.type === "friend") {
-                            // Friend acceptance
-                            acceptRequest({
-                              userId,
-                              notificationId: n.notificationId,
-                            });
-                          } else {
-                            toast.error("Unknown request type");
-                          }
-                        }}
-                        className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 flex items-center gap-1"
-                      >
-                        <Check size={14} /> Accept
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          rejectRequest({
-                            userId,
-                            notificationId: n.notificationId,
-                          })
-                        }
-                        className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 flex items-center gap-1"
-                      >
-                        <X size={14} /> Reject
-                      </button>
-                    </div>
+      {/* 🔔 Friend Notifications */}
+      <div className="mt-auto pt-4 border-t border-gray-800">
+        <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
+          <Bell size={18} /> Friend Requests
+        </h4>
+        <div className="space-y-2">
+          {notifications?.received?.filter((n) => n.type === "friend")
+            ?.length ? (
+            notifications.received
+              .filter((n) => n.type === "friend")
+              .map((n, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded bg-[#1b1f24] p-2 text-sm text-gray-200 hover:bg-[#232830]"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {n.senderName || n.sender?.username}
+                    </p>
+                    <p className="text-xs text-gray-400">{n.message}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-400 text-xs">No new notifications.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Clan Join Requests (for Leaders) */}
-{clan && clan.leader?._id === authUser?._id && (
-  <div className="mt-8 pt-4 border-t border-gray-800">
-    <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
-      <Shield size={18} /> Clan Join Requests
-    </h4>
-    <button
-      onClick={async () => {
-        getClanRequests({ clanId: clan._id, userId: authUser._id });
-       
-      }}
-      className="mb-2 bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
-    >
-      Refresh Requests
-    </button>
-
-    <div className="space-y-2 max-h-60 overflow-y-auto">
-      {clanRequests?.length ? (
-        clanRequests.map((r) => (
-          <div
-            key={r._id}
-            className="flex items-center justify-between rounded bg-[#1b1f24] p-2 text-sm text-gray-200 hover:bg-[#232830]"
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        acceptRequest({
+                          userId,
+                          notificationId: n.notificationId,
+                        })
+                      }
+                      className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 flex items-center gap-1"
+                    >
+                      <Check size={14} /> Accept
+                    </button>
+                    <button
+                      onClick={() =>
+                        rejectRequest({
+                          userId,
+                          notificationId: n.notificationId,
+                        })
+                      }
+                      className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 flex items-center gap-1"
+                    >
+                      <X size={14} /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+          ) : (
+            <p className="text-xs text-gray-500">No friend notifications.</p>
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      {/* 🛡️ Clan Search */}
+      <div>
+        <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
+          <Search size={18} /> Search Clans
+        </h4>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={clanSearch}
+            onChange={(e) => setClanSearch(e.target.value)}
+            placeholder="Enter clan name..."
+            className="flex-1 rounded bg-[#1b1f24] border border-gray-700 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+          <button
+            onClick={() => searchClans(clanSearch)}
+            className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm text-white"
           >
-            <div className="flex items-center gap-2">
-              <img
-                src={r.profilePic || "/profile.png"}
-                className="w-8 h-8 rounded-full object-cover"
-                alt="user"
-              />
-              <p className="font-medium">{r._id}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() =>
-                  acceptClanInvite({ clanId: clan._id, userId: r._id })
-                }
-                className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 flex items-center gap-1"
-              >
-                <Check size={14} /> Accept
-              </button>
-              <button
-                onClick={() =>
-                  rejectJoinRequest({ clanId: clan._id, userId: r._id })
-                }
-                className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 flex items-center gap-1"
-              >
-                <X size={14} /> Reject
-              </button>
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-400 text-xs">No join requests yet.</p>
-      )}
-    </div>
-  </div>
-)}
+            Go
+          </button>
+        </div>
 
-        </aside>
+        <div className="mt-3 max-h-48 overflow-y-auto space-y-2">
+          {foundClans?.length > 0 ? (
+            foundClans.map((c) => (
+              <div
+                key={c._id}
+                className="p-2 bg-[#1e242f] border border-gray-700 rounded-md"
+              >
+                <p className="font-semibold text-white">{c.name}</p>
+                <p className="text-xs text-gray-400">
+                  {c.description || "No description"}
+                </p>
+                <button
+                  onClick={() => requestJoinClan({ clanId: c._id, userId })}
+                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-xs px-3 py-1 rounded"
+                >
+                  Request to Join
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-500 text-center">
+              No clans found.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 📨 Clan Notifications */}
+      <div className="mt-8 border-t border-gray-800 pt-4">
+        <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
+          <Bell size={18} /> Clan Notifications
+        </h4>
+        <div className="space-y-2">
+          {notifications?.received?.filter(
+            (n) => n.type === "clan" || n.relatedModel === "Clan"
+          )?.length ? (
+            notifications.received
+              .filter(
+                (n) => n.type === "clan" || n.relatedModel === "Clan"
+              )
+              .map((n, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded bg-[#1b1f24] p-2 text-sm text-gray-200 hover:bg-[#232830]"
+                >
+                  <div>
+                    <p className="font-medium">{n.senderName}</p>
+                    <p className="text-xs text-gray-400">{n.message}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        acceptClanInvite({
+                          userId,
+                          clanId: n.relatedId,
+                          notificationId: n.notificationId,
+                        })
+                      }
+                      className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 flex items-center gap-1"
+                    >
+                      <Check size={14} /> Accept
+                    </button>
+                    <button
+                      onClick={() =>
+                        rejectRequest({
+                          userId,
+                          notificationId: n.notificationId,
+                        })
+                      }
+                      className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 flex items-center gap-1"
+                    >
+                      <X size={14} /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+          ) : (
+            <p className="text-xs text-gray-500">
+              No clan-related notifications.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 👑 Clan Join Requests for Leaders */}
+      {clan && clan.leader?._id === authUser?._id && (
+        <div className="mt-8 pt-4 border-t border-gray-800">
+          <h4 className="mb-3 text-md font-semibold text-white flex items-center gap-2">
+            <Shield size={18} /> Clan Join Requests
+          </h4>
+          <button
+            onClick={() =>
+              getClanRequests({ clanId: clan._id, userId: authUser._id })
+            }
+            className="mb-2 bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
+          >
+            Refresh
+          </button>
+
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {clanRequests?.length ? (
+              clanRequests.map((r) => (
+                <div
+                  key={r._id}
+                  className="flex items-center justify-between rounded bg-[#1b1f24] p-2 text-sm text-gray-200 hover:bg-[#232830]"
+                >
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={r.profilePic || "/profile.png"}
+                      className="w-8 h-8 rounded-full object-cover"
+                      alt="user"
+                    />
+                    <p className="font-medium">{r.username}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        acceptClanInvite({
+                          clanId: clan._id,
+                          userId: r._id,
+                        })
+                      }
+                      className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 flex items-center gap-1"
+                    >
+                      <Check size={14} /> Accept
+                    </button>
+                    <button
+                      onClick={() =>
+                        rejectJoinRequest({
+                          clanId: clan._id,
+                          userId: r._id,
+                        })
+                      }
+                      className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 flex items-center gap-1"
+                    >
+                      <X size={14} /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-gray-500">No join requests.</p>
+            )}
+          </div>
+        </div>
       )}
+    </>
+  )}
+</aside>
+
     </div>
   );
 };

@@ -42,11 +42,11 @@ const messageSchema = new mongoose.Schema(
     },
 
     // Only for global messages: TTL deletes after 5 minutes
-    expiresAt: {
-      type: Date,
-      default: null, // set only if message is global
-      index: { expires: '5m' }, // MongoDB TTL index
-    },
+    // expiresAt: {
+    //   type: Date,
+    //   default: null, // set only if message is global
+    //   index: { expires: '5m' }, // MongoDB TTL index
+    // },
   },
   { timestamps: true }
 );
