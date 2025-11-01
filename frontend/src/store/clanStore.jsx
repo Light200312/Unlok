@@ -174,21 +174,27 @@ export const useClanStore = create(
       },
 
       /** ✅ Socket.io Clan Chat Subscriptions */
-      subscribeToClanChat: (roomId) => {
-        const socket = UserAuth?.getState()?.socket;
-        if (!socket) return;
-        socket.emit("joinClanRoom", roomId);
-        socket.off("newClanMessage");
-        socket.on("newClanMessage", (msg) =>
-          set((state) => ({ clanMessages: [...state.clanMessages, msg] }))
-        );
-      },
+   subscribeToClanChat: (roomId) => {
+  const socket = UserAuth?.getState()?.socket;
+  if (!socket) return;
 
-      unsubscribeFromClanChat: (roomId) => {
-        const socket = UserAuth?.getState()?.socket;
-        socket?.emit("leaveClanRoom", roomId);
-        socket?.off("newClanMessage");
-      },
+  socket.emit("joinClanRoom", roomId);
+  socket.off("clanMessage"); // ✅ clean previous listener
+
+  socket.on("clanMessage", (msg) => {
+    set((state) => {
+      const exists = state.clanMessages.some((m) => m._id === msg._id);
+      if (exists) return state;
+      return { clanMessages: [...state.clanMessages, msg] };
+    });
+  });
+},
+
+unsubscribeFromClanChat: (roomId) => {
+  const socket = UserAuth?.getState()?.socket;
+  socket?.emit("leaveClanRoom", roomId);
+  socket?.off("clanMessage"); // ✅ same event name
+},
     }),
   //   {
   //     name: "clan-storage",

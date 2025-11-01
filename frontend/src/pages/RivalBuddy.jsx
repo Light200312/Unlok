@@ -80,6 +80,7 @@ const RivalBuddy = () => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+
   /** Load initial data */
   useEffect(() => {
     getUsers(userId);
@@ -91,13 +92,21 @@ const RivalBuddy = () => {
   }, [selectedUser?._id]);
 
   /** Clan Chat setup */
-  useEffect(() => {
-    if (showClanChat && clan?._id) {
-      getClanMessages(clan.chatRoomId);
-      subscribeToClanChat(clan.chatRoomId);
-      return () => unsubscribeFromClanChat(clan.chatRoomId);
-    }
-  }, [showClanChat, clan?._id]);
+ useEffect(() => {
+  if (!showClanChat || !clan?._id) return;
+
+  // 🧠 Fetch only once when opening
+  getClanMessages(clan._id);
+
+  // 🔔 Subscribe to real-time chat
+  subscribeToClanChat(clan.chatRoomId);
+
+  // ✅ Cleanup properly on close
+  return () => {
+    unsubscribeFromClanChat(clan.chatRoomId);
+  };
+}, [showClanChat, clan?.chatRoomId]);
+
 
   /** Image Upload */
   const handleImageChange = (e) => {
@@ -146,7 +155,7 @@ const RivalBuddy = () => {
           <button
             onClick={() => {
               setActiveTab("clan");
-              setShowClanChat(false);
+              setShowClanChat(false); setShowClanChat(true)
             }}
             className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm font-medium transition-all ${
               activeTab === "clan"
@@ -154,7 +163,7 @@ const RivalBuddy = () => {
                 : "text-gray-400 hover:text-gray-200"
             }`}
           >
-            <Shield size={16} /> Clan
+            <Shield size={16 }  /> Clan
           </button>
         </div>
 
@@ -203,8 +212,8 @@ const RivalBuddy = () => {
                   {" "}
                   <ul>
                     <li>
-                      Members{clan.members.map((i) => {
-                        <div>{i._id}</div>;
+                      Members {clan.members.map((i) => {
+                        <div>{i.username}</div>;
                       })}
                     </li>
                   </ul>
@@ -287,24 +296,53 @@ const RivalBuddy = () => {
               <h3 className="text-md font-medium text-white">{clan?.name}</h3>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {clanMessages?.map((m, i) => (
-                <div
-                  key={i}
-                  className={`flex ${
-                    m.senderId === userId ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${
-                      m.senderId === userId
-                        ? "bg-blue-600 text-white"
-                        : "bg-[#1f2630] text-gray-200"
-                    }`}
-                  >
-                    {m.text}
-                  </div>
-                </div>
-              ))}
+             {clanMessages?.map((m, i) => {
+  const isMine = m.senderId?._id === authUser?._id;
+  return (
+    <div
+      key={m._id || i}
+      className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}
+    >
+      {/* Sender Name */}
+      {!isMine && (
+        <span className="text-xs text-cyan-400 mb-1 font-medium">
+          {m.senderId?.username || "Anonymous"}
+        </span>
+      )}
+
+      {/* Message Bubble */}
+      <div
+        className={`max-w-[80%] px-3 py-2 rounded-xl text-sm transition-all duration-200 ${
+          isMine
+            ? "bg-cyan-600/40 border border-cyan-500/50 text-cyan-50"
+            : "bg-neutral-800/60 border border-cyan-700/30 text-gray-200"
+        }`}
+        style={{
+          boxShadow: isMine
+            ? "0 0 10px rgba(0,255,255,0.3)"
+            : "0 0 5px rgba(0,255,255,0.2)",
+        }}
+      >
+        {m.text && <p>{m.text}</p>}
+        {m.image && (
+          <img
+            src={m.image}
+            alt="sent"
+            className="mt-2 max-h-48 rounded-md border border-cyan-700/40"
+          />
+        )}
+      </div>
+
+      {/* Timestamp */}
+      <span className="text-[10px] text-neutral-500 mt-1">
+        {new Date(m?.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+    </div>
+  );
+})}
               <div ref={messageEndRef} />
             </div>
 

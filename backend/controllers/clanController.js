@@ -329,7 +329,7 @@ export const getClanMessages = async (req, res) => {
     res.status(200).json(messages);
   } catch (err) {
     console.error("❌ Error fetching clan messages:", err.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error"  +error});
   }
 };
 
@@ -341,7 +341,7 @@ export const sendClanMessage = async (req, res) => {
 
     const msg = await Message.create({ senderId: userId, room: chatRoomId, text, image });
     const populated = await msg.populate("senderId", "username profilePic");
-
+const clanId=chatRoomId;
     io.to(clanId).emit("newClanMessage", populated);
 
     res.status(201).json(populated);
