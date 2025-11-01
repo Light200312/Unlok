@@ -8,7 +8,7 @@ import {
   AddToFriendList,
   FindUsers,
   acceptFriendRequest,
-  rejectFriendRequest, // ✅ new
+  rejectFriendRequest,ChallengeSync
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -21,5 +21,6 @@ router.post("/addFriendRequest", AddToFriendList);
 router.post("/acceptRequest", acceptFriendRequest);
 router.post("/rejectRequest", rejectFriendRequest); // ✅ new
 router.post("/fetchNotification", fetchNotifications);
+router.post("/challenge/sync", ChallengeSync);
 
 export default router;

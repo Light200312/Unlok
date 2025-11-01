@@ -34,7 +34,7 @@ const postSchema = new mongoose.Schema(
     challenges: [challengeProofSchema],
 
     live:{type:Boolean,default:false},
-    discription:{type:String},
+    description:{type:String},
     tags:[{type:String}],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
    comments: [commentSchema],

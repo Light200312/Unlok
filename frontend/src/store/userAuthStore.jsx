@@ -31,6 +31,20 @@ export const UserAuth = create(
           toast.error("User not found!");
         }
       },
+      syncChallenges: async (userId1, userId2, duration) => {
+  try {
+    const res = await axios.post(`${url}/user/challenge/sync`, {
+      userId1,
+      userId2,
+      duration,
+    });
+    toast.success("✅ Challenge sync established!");
+    return res.data;
+  } catch (err) {
+    console.error("❌ syncChallenges:", err.message);
+    toast.error(err.response?.data?.error || "Failed to sync challenges");
+  }
+},
 
       /** 🤝 Send a friend request */
       /** 📩 Send Friend Request */

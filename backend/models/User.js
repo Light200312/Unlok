@@ -66,6 +66,7 @@ relatedModel: { type: String, enum: ["Clan", "Quest", "User", "Post"], default: 
     questSynced: { type: Boolean, default: false },
     questSyncedWith: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     questSyncedDuration: { type: Date },
+    syncedUseranme:{ type: String },
   },
   { timestamps: true }
 );

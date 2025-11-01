@@ -11,7 +11,7 @@ import {
   UserPlus,
   Search,
   Bell,
-  X,
+  X,Link 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -44,7 +44,7 @@ const RivalBuddy = () => {
 
   const {
     clan,
-    foundClans,
+    foundClans,getClanInfo,
     searchClans,
     requestJoinClan,
     getClanMessages,
@@ -63,7 +63,7 @@ const RivalBuddy = () => {
     makeFriendReq,
     fetchAllNotifications,
     acceptRequest,
-    rejectRequest,
+    rejectRequest,syncChallenges
   } = UserAuth();
 
   const userId = authUser._id;
@@ -83,7 +83,7 @@ const RivalBuddy = () => {
   /** Load initial data */
   useEffect(() => {
     getUsers(userId);
-    getFriends(userId);
+    getFriends(userId);getClanInfo(authUser.clan)
     if (selectedUser?._id) getMessages(userId, selectedUser._id);
     fetchAllNotifications(userId);
     subscribeToMessages();
@@ -162,6 +162,7 @@ const RivalBuddy = () => {
         {activeTab === "friends" && (
           <div className="flex-1 overflow-y-auto p-2">
             {friends?.map((u, i) => (
+              <div className=" flex gap-2"> 
               <button
                 key={i}
                 onClick={() => setSelectedUser(u)}
@@ -177,13 +178,14 @@ const RivalBuddy = () => {
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <p className="truncate">{u.username}</p>
-              </button>
+
+              </button>  <button className="p-1 px-2 m-1 bg-green-600 rounded-full" onClick={()=>syncChallenges(userId,u._id,7)}><Link size={15}/></button> </div>
             ))}
           </div>
         )}
 
         {/* CLAN TAB */}
-        {activeTab === "clan" && (
+         {activeTab === "clan" && (
           <div className="flex flex-col items-center justify-between flex-1 p-4">
             {clan ? (
               <div className="text-center">
@@ -201,7 +203,7 @@ const RivalBuddy = () => {
                   {" "}
                   <ul>
                     <li>
-                      {clan.members.map((i) => {
+                      Members{clan.members.map((i) => {
                         <div>{i._id}</div>;
                       })}
                     </li>
@@ -273,6 +275,8 @@ const RivalBuddy = () => {
             )}
           </div>
         )}
+        
+      
       </aside>
 
       {/* MAIN CHAT AREA */}
@@ -453,7 +457,30 @@ const RivalBuddy = () => {
             </div>
             <div>
               {foundUsers && foundUsers.map((u,i)=>(
-                 (<div> {u.username} {u.rank} {u.clan || "Solo"} {u.clanRole || "no clan role"} <button onClick={()=>makeFriendReq( { friendId :u._id,  userId }) } className="btn btn-primary text-secondry"> ADD Friend </button> </div>)
+                 <div className="flex items-center justify-between p-3 bg-base-200/70 rounded-xl shadow-md hover:bg-base-300 transition-all mb-2 border border-base-300">
+      {/* 👤 Profile Info */}
+      <div className="flex items-center gap-3">
+        <img
+          src={u.profilePic || "/profile.png"}
+          alt={u.username}
+          className="w-10 h-10 rounded-full object-cover border border-base-300"
+        />
+        <div>
+          <h3 className="font-semibold text-base-content">{u.username}</h3>
+          <p className="text-sm text-base-content/70">
+            {u.rank || "Unranked"} • {u.clan || "Solo"} ({u.clanRole || "No role"})
+          </p>
+        </div>
+      </div>
+
+      {/* ➕ Add Friend Button */}
+      <button
+        onClick={() => makeFriendReq({ friendId: u._id, userId })}
+        className="btn btn-sm btn-primary text-white px-4"
+      >
+        Add Friend
+      </button>
+    </div>
               ))}
               
             </div>

@@ -6,7 +6,7 @@ import { url } from "../URL";
 import { UserAuth } from "./userAuthStore";
 
 export const useClanStore = create(
-  persist(
+  // persist(
     (set, get) => ({
       clan: null,
       clanInfo: null,
@@ -61,7 +61,7 @@ export const useClanStore = create(
         set({ clansLoading: true });
         try {
           const res = await axios.get(`${url}/clan/info/${clanId}`);
-          set({ clanInfo: res.data });
+          set({ clan: res.data });
         } catch (err) {
           toast.error(err.response?.data?.error || "Failed to fetch clan info");
         } finally {
@@ -190,13 +190,13 @@ export const useClanStore = create(
         socket?.off("newClanMessage");
       },
     }),
-    {
-      name: "clan-storage",
-      getStorage: () => localStorage,
-      partialize: (state) => {
-        const { clanMessages, ...rest } = state;
-        return rest;
-      },
-    }
-  )
+  //   {
+  //     name: "clan-storage",
+  //     getStorage: () => localStorage,
+  //     partialize: (state) => {
+  //       const { clanMessages, ...rest } = state;
+  //       return rest;
+  //     },
+  //   }
+  // )
 );

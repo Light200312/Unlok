@@ -40,7 +40,7 @@ export const registerUser = async (req, res) => {
 
     await creategeneralstats({ body: { userId: user._id, matrices } });
 
-    res.status(201).json({ message: "Registered successfully", _id: user._id, username: user.username });
+    res.status(201).json({ message: "Registered successfully", _id: user._id, username: user.username , clan :user.clan,});
   } catch (err) {
     console.error("❌ Register Error:", err.message);
     res.status(500).json({ error: "Failed to register user" });
@@ -64,6 +64,7 @@ export const loginUser = async (req, res) => {
       rank: user.rank,
       titles: user.titles,
       badges: user.badges,
+      clan :user.clan,
       points: user.points,
     });
   } catch (err) {
@@ -266,3 +267,38 @@ export const fetchNotifications = async (req, res) => {
   }
 };
 
+export const ChallengeSync = async (req, res) => {
+  try {
+    const { userId1, userId2, duration } = req.body;
+    if (!userId1 || !userId2)
+      return res.status(400).json({ error: "Both user IDs are required" });
+
+    const user1 = await User.findById(userId1);
+    const user2 = await User.findById(userId2);
+    if (!user1 || !user2)
+      return res.status(404).json({ error: "One or both users not found" });
+
+    // ✅ Update sync state
+    user1.questSynced = true;
+    user2.questSynced = true;
+    user1.questSyncedWith = userId2;
+    user2.questSyncedWith = userId1;
+    user1.questSyncedDuration = duration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // default 7 days
+    user2.questSyncedDuration = duration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+user1.syncedUseranme=user2.username;
+user1.syncedUseranme=user1.username;
+    await user1.save();
+    await user2.save();
+
+    res.status(200).json({
+      message: "✅ Quest sync established successfully",
+      users: [
+        { _id: user1._id, questSyncedWith: user1.questSyncedWith },
+        { _id: user2._id, questSyncedWith: user2.questSyncedWith },
+      ],
+    });
+  } catch (error) {
+    console.error("❌ ChallengeSync Error:", error.message);
+    res.status(500).json({ error: "Failed to sync challenges" });
+  }
+};

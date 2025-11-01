@@ -100,7 +100,7 @@ export default function MyPostsPage() {
                 placeholder="Write a short description..."
                 value={
                   editingPost?.[post._id]?.description ??
-                  post.discription ??
+                  post.description ??
                   ""
                 }
                 onChange={(e) =>
@@ -141,6 +141,8 @@ export default function MyPostsPage() {
                     >
                       <p className="font-semibold">{ch.title}</p>
                       <p className="text-gray-600 text-sm">
+
+                        
                         {ch.proofText || "No summary yet."}
                       </p>
                       {ch.proofImage && (
@@ -192,8 +194,8 @@ export default function MyPostsPage() {
               key={post._id}
               className="border border-gray-300 rounded-xl p-4 mb-6 bg-white shadow"
             >
-              <h3 className="text-xl font-semibold">{post.caption || "Untitled Post"}</h3>
-              <p className="text-gray-700 mb-2">{post.discription || "No description"}</p>
+              <h3 className="text-xl font-semibold">caption: {post.caption || "Untitled Post"}</h3>
+              <p className="text-gray-700 mb-2">Descrption:  {post.description || "No description"}</p>
               <p className="text-sm text-gray-500 mb-3">
                 Tags: {post.tags?.join(", ") || "No tags"}
               </p>

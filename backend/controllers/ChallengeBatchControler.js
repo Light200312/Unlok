@@ -30,6 +30,9 @@ export const generateAichallenge = async (req, res) => {
   if (!userId) return res.status(400).json({ error: "User ID is required" });
 
   try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
     const matrices = await Matrix.find({ userId, type: "general" });
     if (!matrices || matrices.length === 0)
       return res.status(404).json({ error: "No matrices found for user" });
@@ -129,7 +132,7 @@ ${selectedChallenges
       }
     };
 
-    // ✅ Format challenges with category & submetric
+    // ✅ Format challenges
     const formattedChallenges = aiOutput.map((c, i) => {
       const normalizedType = normalizeType(c.resource?.type);
       const searchQuery = c.searchTitle || c.title;
@@ -153,7 +156,7 @@ ${selectedChallenges
     const expiresAt = new Date(Date.now() + expirationHours * 60 * 60 * 1000);
     const value = type === "monthly" ? 20 : type === "weekly" ? 15 : 5;
 
-    // ✅ Save with correct field name: `challenges`
+    // ✅ Save primary user's batch
     const challengeBatch = {
       userId,
       type,
@@ -165,6 +168,36 @@ ${selectedChallenges
 
     const savedBatch = await ChallengeBatch.create(challengeBatch);
 
+    // 💠 If user is synced, copy the same challenges to partner
+    if (user.questSynced && user.questSyncedWith) {
+      const partner = await User.findById(user.questSyncedWith);
+      if (partner) {
+        const partnerBatch = {
+          userId: partner._id,
+          type,
+          value,
+          totalValue: Math.max(1, formattedChallenges.length * value),
+          expiresAt,
+          challenges: formattedChallenges.map((c) => ({
+            ...c,
+            completed: false,
+            completedAt: null,
+          })),
+        };
+
+        const syncedBatch = await ChallengeBatch.create(partnerBatch);
+        console.log(
+          `🤝 Synced challenge batch generated for both users (${user.username} ↔ ${partner.username})`
+        );
+
+        return res.status(201).json({
+          message: `✅ ${formattedChallenges.length} ${type} challenges generated and synced`,
+          data: { userBatch: savedBatch, partnerBatch: syncedBatch },
+        });
+      }
+    }
+
+    // Default response (no sync)
     res.status(201).json({
       message: `✅ ${formattedChallenges.length} ${type} challenges generated`,
       data: savedBatch,
@@ -177,6 +210,7 @@ ${selectedChallenges
     });
   }
 };
+
 
 // 🔹 Fetch challenges
 export const fetchChallenges = async (req, res) => {
