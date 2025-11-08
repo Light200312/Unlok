@@ -179,10 +179,10 @@ const GlobalChat = () => {
   return (
     <div
       data-theme="forest"
-      className="min-h-screen relative w-full flex bg-[#020617] text-white overflow-hidden "
+      className="min-h-screen relative w-full flex bg-white text-white overflow-hidden "
     >
       {/* ... (existing background divs) ... */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-black to-black" />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-gary-400 to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.05),transparent_70%)] animate-pulse" />
 
       {/* 🌌 Left Side – Community Feed */}

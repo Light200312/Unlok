@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 import { ThreeDCardDemo } from "../components/Landing Page Component/ThreeDCardDemo";
 import Footer from "../components/Landing Page Component/Footer";
 import FeaturesSection from "../components/Landing Page Component/FeaturesSection";
+import { Link, useNavigate } from "react-router-dom";
 
+// const Navigate = useNavigate();
 const habits = [
   {
     likes: 60,
@@ -66,22 +68,25 @@ const LandingPage = () => {
             />
 
             <div className="flex flex-col sm:flex-row gap-5 bg-grecen-600 ml-2 ">
-              <button
+              <Link
+                // onClick={Navigate("/register")}
+                to={"/register"}
                 className="bg-white text-gray-900 font-semibold py-2 px-7 rounded-xl
                              hover:bg-gray-200 transition-all duration-300 ease-in-out
                              shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                Quick tour
-              </button>
+                Register
+              </Link>
 
-              <button
+              <Link
+                to={"/login"}
                 className="bg-transparent text-white font-semibold py-2 px-7 rounded-xl
                              border-2 border-white
                              hover:bg-white hover:text-gray-900 transition-all duration-300 ease-in-out
                              shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                Sign Up
-              </button>
+                Login
+              </Link>
             </div>
           </div>
         </div>
